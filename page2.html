@@ -1,30 +1,105 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Страница 2</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Крипто‑индекс TOP‑500</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2rem;}
+        #chartContainer {max-width: 900px; margin: auto;}
+    </style>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
 </head>
 <body>
-  <header>
-    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
-      Торговать криптовалютами на BINANCE
-    </a>
-  </header>
+    <h2>Крипто‑индекс TOP‑500 (по рыночной капитализации)</h2>
+    <div id="chartContainer">
+        <canvas id="cryptoChart"></canvas>
+    </div>
 
-  <nav>
-    <ul>
-      <li><a href="index.html">Калькулятор</a></li>
-      <li><a href="page2.html">Страница 2</a></li>
-      <li><a href="page3.html">Страница 3</a></li>
-    </ul>
-  </nav>
+    <script>
+        // ---------- 1. Параметры ----------
+        const COINGECKO_API = "https://api.coingecko.com/api/v3/coins/markets";
+        const CURRENCY = "usd";          // валюта, в которой берём капитализацию
+        const PER_PAGE = 250;            // CoinGecko возвращает максимум 250 за запрос
+        const TOTAL_COINS = 500;         // сколько монет включаем в индекс
+        const DAYS = 30;                 // период отображения (30 дней)
 
-  <main>
-    <h1>Страница 2</h1>
-    <p>Тестовое содержимое подстраницы.</p>
-  </main>
+        // ---------- 2. Вспомогательные функции ----------
+        // Формат даты YYYY‑MM‑DD
+        function fmtDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // Получить исторические цены (market cap) за N дней
+        async function fetchHistorical(coinId) {
+            const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=${CURRENCY}&days=${DAYS}`;
+            const resp = await fetch(url);
+            const data = await resp.json();
+            // data.market_cap – массив [timestamp, cap]
+            return data.market_cap.map(p => ({date: fmtDate(new Date(p[0])), cap: p[1]}));
+        }
+
+        // ---------- 3. Основная логика ----------
+        (async () => {
+            // 3.1 Получаем список топ‑500 монет (по 2 запросам по 250)
+            const pages = Math.ceil(TOTAL_COINS / PER_PAGE);
+            let allCoins = [];
+            for (let page = 1; page <= pages; page++) {
+                const url = `${COINGECKO_API}?vs_currency=${CURRENCY}&order=market_cap_desc&per_page=${PER_PAGE}&page=${page}&sparkline=false`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                allCoins = allCoins.concat(data);
+            }
+            const topCoins = allCoins.slice(0, TOTAL_COINS);
+
+            // 3.2 Скачиваем исторические рыночные капитализации для каждой монеты
+            const histories = await Promise.all(
+                topCoins.map(c => fetchHistorical(c.id))
+            );
+
+            // 3.3 Сводим данные по датам
+            const dates = histories[0].map(p => p.date); // одинаковый набор дат у всех
+            const dailyTotal = dates.map((d, i) => {
+                let sum = 0;
+                histories.forEach(hist => sum += hist[i].cap);
+                return sum;
+            });
+
+            // 3.4 Нормируем к 100 % в первый день (как делает S&P 500)
+            const base = dailyTotal[0];
+            const indexValues = dailyTotal.map(v => (v / base) * 100);
+
+            // 3.5 Рисуем график
+            const ctx = document.getElementById('cryptoChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'TOP‑500 Crypto Index',
+                        data: indexValues,
+                        borderColor: '#ff6600',
+                        backgroundColor: 'rgba(255,102,0,0.1)',
+                        tension: 0.2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {display: true}
+                    },
+                    scales: {
+                        x: {display: true, title: {display: true, text: 'Дата'}},
+                        y: {display: true, title: {display: true, text: 'Индекс (база = 100)'}}
+                    }
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
+
+
 
 
