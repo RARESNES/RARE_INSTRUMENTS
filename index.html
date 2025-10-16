@@ -1,98 +1,126 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор криптотрейдера</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Калькулятор криптотрейдера</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <header>
-        Купите криптовалюту и торгуйте на BINANCE
-    </header>
+  <header>
+    <div class="header-left"></div> <!-- декоративная левая часть для скругления -->
+    <div class="header-content">Купите криптовалюту и торгуйте на BINANCE</div>
+  </header>
 
-    <nav>
-        <ul>
-            <li><a href="index.html">Калькулятор</a></li>
+  <nav>
+    <ul>
+      <li><a href="index.html">Калькулятор</a></li>
 
-            <li>
-                <div class="nav-item" onclick="toggleSubmenu(this)">
-                    <span class="nav-arrow">▼</span>
-                    <span>Страница 2</span>
-                </div>
-                <ul class="nav-sublist">
-                    <li><a href="#">Подстраница 2.1</a></li>
-                    <li><a href="#">Подстраница 2.2</a></li>
-                </ul>
-            </li>
+      <li>
+        <a class="nav-item" href="page2.html">Страница 2</a>
+      </li>
 
-            <li><a href="page3.html">Страница 3</a></li>
-        </ul>
-    </nav>
+      <li>
+        <a class="nav-item" href="page3.html">Страница 3</a>
+      </li>
+    </ul>
+  </nav>
 
-    <main>
-        <h1>Калькулятор сложного процента</h1>
+  <main>
+    <h1>Калькулятор сложного процента</h1>
 
-        <label>Начальная сумма ($):</label>
-        <input type="number" id="principal" placeholder="1000">
+    <div class="form" aria-label="Форма расчёта">
+      <label for="principal">Начальная сумма ($):</label>
+      <input id="principal" type="number" placeholder="1000" />
 
-        <label>Процент за сделку (%):</label>
-        <input type="number" id="rate" placeholder="1">
+      <label for="rate">Процент за сделку (%):</label>
+      <input id="rate" type="number" step="0.01" placeholder="1" />
 
-        <label>Количество сделок:</label>
-        <input type="number" id="trades" placeholder="10">
+      <label for="trades">Количество сделок:</label>
+      <input id="trades" type="number" placeholder="10" />
 
-        <button onclick="calculate()">Рассчитать</button>
+      <button id="calcBtn">Рассчитать</button>
+    </div>
 
-        <table id="resultsTable">
-            <thead>
-                <tr>
-                    <th>Сделка</th>
-                    <th>Прибыль</th>
-                </tr>
-            </thead>
-            <tbody id="resultsBody"></tbody>
-        </table>
-    </main>
+    <div class="results-wrapper" aria-live="polite">
+      <table id="resultsTable" aria-label="Результаты">
+        <thead>
+          <tr>
+            <th>Сделка</th>
+            <th>Прибыль</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+  </main>
 
-    <script>
-        function toggleSubmenu(el) {
-            const arrow = el.querySelector('.nav-arrow');
-            const submenu = el.nextElementSibling;
-            arrow.classList.toggle('open');
-            submenu.classList.toggle('open');
+  <footer></footer>
+
+  <script>
+    // навешиваем поведение "выпадающих" пунктов (резерв, в текущем навбаре нет вложенных подстраниц)
+    function toggleSubmenu(el) {
+      // el — элемент .nav-item который был нажат
+      const arrow = el.querySelector('.nav-arrow');
+      const sub = el.nextElementSibling;
+      if (!sub) return;
+      const opening = !sub.classList.contains('open');
+      sub.classList.toggle('open', opening);
+      if (arrow) arrow.classList.toggle('open', opening);
+    }
+
+    // Калькулятор и бесконечная выдача
+    (function () {
+      const principalEl = document.getElementById('principal');
+      const rateEl = document.getElementById('rate');
+      const tradesEl = document.getElementById('trades');
+      const btn = document.getElementById('calcBtn');
+      const resultsBody = document.getElementById('resultsBody');
+
+      let intervalId = null;
+
+      btn.addEventListener('click', () => {
+        const p = parseFloat(principalEl.value);
+        const r = parseFloat(rateEl.value) / 100;
+        const t = parseInt(tradesEl.value, 10);
+
+        if (isNaN(p) || isNaN(r) || isNaN(t)) {
+          alert('Введите корректные значения');
+          return;
         }
 
-        function calculate() {
-            const principal = parseFloat(document.getElementById('principal').value);
-            const rate = parseFloat(document.getElementById('rate').value) / 100;
-            const trades = parseInt(document.getElementById('trades').value);
-
-            if (isNaN(principal) || isNaN(rate) || isNaN(trades)) {
-                alert('Введите корректные значения');
-                return;
-            }
-
-            let amount = principal;
-            const resultsBody = document.getElementById('resultsBody');
-            resultsBody.innerHTML = '';
-
-            for (let i = 1; i <= trades; i++) {
-                amount += amount * rate;
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${i}</td><td>$${amount.toFixed(2)}</td>`;
-                resultsBody.appendChild(row);
-            }
-
-            // Бесконечный вывод после расчетов (дополнительно)
-            let tradeNumber = trades + 1;
-            setInterval(() => {
-                amount += amount * rate;
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${tradeNumber++}</td><td>$${amount.toFixed(2)}</td>`;
-                resultsBody.appendChild(row);
-            }, 300); // каждые 0.3 сек новая сделка
+        // Если уже работал — остановим старый интервал
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
         }
-    </script>
+
+        resultsBody.innerHTML = '';
+        let amount = p;
+        let tradeNumber = 1;
+
+        // Выводим начальные t сделок
+        for (let i = 0; i < t; i++) {
+          amount += amount * r;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${tradeNumber}</td><td>$${amount.toFixed(2)}</td>`;
+          resultsBody.appendChild(tr);
+          tradeNumber++;
+        }
+
+        // Бесконечный поток: добавляем новые строки каждые 300ms
+        intervalId = setInterval(() => {
+          amount += amount * r;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${tradeNumber}</td><td>$${amount.toFixed(2)}</td>`;
+          resultsBody.appendChild(tr);
+          tradeNumber++;
+
+          // аккуратно — скроллим к последней записи
+          tr.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 300);
+      });
+    })();
+  </script>
 </body>
 </html>
