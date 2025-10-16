@@ -6,20 +6,14 @@
 }
 
 :root {
-  --radius: 12px;
-  --nav-width: 250px;
-  --header-height: 64px;
-  --bg-color: #ffffff;
-  --black: #000000;
+  --radius: 12px; /* единый радиус скругления */
 }
 
 body {
   display: flex;
   height: 100vh;
-  background-color: var(--bg-color);
+  background-color: #fff;
   color: #000;
-  position: relative;
-  overflow-x: hidden;
 }
 
 /* Верхняя чёрная полоса */
@@ -28,12 +22,12 @@ header {
   top: 0;
   left: 0;
   width: 100%;
-  height: var(--header-height);
-  background-color: var(--black);
+  height: 64px;
+  background-color: #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 900;
+  z-index: 1000;
 }
 
 header a {
@@ -50,13 +44,12 @@ header a:hover {
 /* Левая панель */
 nav {
   position: fixed;
-  top: var(--header-height);
+  top: 64px;
   left: 0;
-  width: var(--nav-width);
-  height: calc(100% - var(--header-height));
-  background-color: var(--black);
+  width: 250px;
+  height: calc(100% - 64px);
+  background-color: #000;
   padding-top: 20px;
-  z-index: 900;
 }
 
 nav ul {
@@ -80,22 +73,23 @@ nav ul li a:hover {
   background-color: #222;
 }
 
-/* ✅ Внутренний полукруг в углу “Г” */
-.corner-cut {
-  position: fixed;
-  top: var(--header-height);
-  left: var(--nav-width);
-  width: var(--header-height);
-  height: var(--header-height);
-  background: var(--bg-color);
-  border-top-left-radius: var(--header-height);
-  z-index: 950; /* поверх панели и шапки */
+/* Вырез внутреннего угла (правый край панели / нижний край верхней) */
+header::after {
+  content: "";
+  position: absolute;
+  top: 64px;
+  left: 250px;
+  width: 64px;
+  height: 64px;
+  background: white;
+  border-top-left-radius: 64px;
+  z-index: 1001;
 }
 
 /* Основной контент */
 main {
-  margin-left: var(--nav-width);
-  margin-top: var(--header-height);
+  margin-left: 250px;
+  margin-top: 64px;
   padding: 20px;
   flex: 1;
   text-align: center;
@@ -106,7 +100,7 @@ h1 {
   text-align: center;
 }
 
-/* Калькулятор */
+/* Калькулятор в одну строку по центру */
 .calc-row {
   display: flex;
   flex-wrap: wrap;
@@ -128,11 +122,11 @@ h1 {
 }
 
 .calc-row button {
-  background-color: var(--black);
+  background-color: #000;
   color: #fff;
   cursor: pointer;
   border: none;
-  min-width: 160px;
+  min-width: 140px;
   border-radius: var(--radius);
 }
 
@@ -146,7 +140,7 @@ h1 {
   border-collapse: collapse;
   border-radius: var(--radius);
   overflow: hidden;
-  min-width: 450px;
+  min-width: 400px; /* немного шире */
 }
 
 #resultsTable th, #resultsTable td {
