@@ -34,7 +34,7 @@ nav {
     position: fixed;
     top: 30px; /* ниже верхней полосы */
     left: 0;
-    width: 200px;
+    width: 250px;
     height: calc(100% - 30px);
     background-color: #000;
     color: #fff;
@@ -89,6 +89,7 @@ button {
 button:hover {
     background-color: #222;
 }
+
 
 
 
