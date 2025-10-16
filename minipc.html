@@ -11,67 +11,6 @@
       --gallery-gap: 20px;
     }
 
-    main {
-      /* Совместимо со style.css — центрируем содержимое */
-      padding: 32px;
-      display: flex;
-      justify-content: center;
-    }
-
-
-    .card {
-      background: #fff;
-      border-radius: var(--radius, 12px);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-      transition: transform .15s ease, box-shadow .15s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.10);
-    }
-
-
-    .caption {
-      padding: 14px;
-      font-size: 18px;
-      font-weight: 600;
-      text-align: center;
-      color: #111;
-      width: 100%;
-      background: #fff;
-    }
-
-    /* адаптив — одна колонка на узких экранах */
-    @media (max-width: 720px) {
-      .gallery {
-        grid-template-columns: 1fr;
-      }
-      .card img {
-        height: 300px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
-      Купите криптовалюту и торгуйте на BINANCE
-    </a>
-  </header>
-
-  <nav>
-    <ul>
-      <li><a href="index.html">Калькулятор</a></li>
-      <li><a href="crypto-index.html">Индекс Топ 500 криптовалют</a></li>
-      <li><a href="minipc.html">Мини ПК для трейдинга</a></li>
-    </ul>
-  </nav>
-
   <main>
     <div class="gallery" aria-label="Галерея мини-ПК">
       <div class="card">
@@ -95,6 +34,7 @@
   <footer></footer>
 </body>
 </html>
+
 
 
 
