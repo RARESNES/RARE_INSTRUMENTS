@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор криптотрейдера</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        Купите криптовалюту и торгуйте на BINANCE
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="index.html">Калькулятор</a></li>
+            <li><a href="page2.html">Страница 2</a></li>
+            <li><a href="page3.html">Страница 3</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <h1>Калькулятор сложного процента</h1>
+        <label>Начальная сумма (₽):</label>
+        <input type="number" id="principal" placeholder="1000">
+
+        <label>Процент в месяц (%):</label>
+        <input type="number" id="rate" placeholder="5">
+
+        <label>Количество месяцев:</label>
+        <input type="number" id="months" placeholder="12">
+
+        <button onclick="calculate()">Рассчитать</button>
+
+        <h2>Результат: <span id="result">0</span> ₽</h2>
+    </main>
+
+    <script>
+        function calculate() {
+            const principal = parseFloat(document.getElementById('principal').value);
+            const rate = parseFloat(document.getElementById('rate').value) / 100;
+            const months = parseInt(document.getElementById('months').value);
+
+            if (isNaN(principal) || isNaN(rate) || isNaN(months)) {
+                alert('Введите корректные значения');
+                return;
+            }
+
+            let amount = principal;
+            for (let i = 0; i < months; i++) {
+                amount += amount * rate;
+            }
+
+            document.getElementById('result').textContent = amount.toFixed(2);
+        }
+    </script>
+</body>
+</html>

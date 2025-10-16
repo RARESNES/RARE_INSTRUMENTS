@@ -1,0 +1,91 @@
+/* Сброс стилей */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    display: flex;
+    height: 100vh;
+    background-color: #fff;
+    color: #000;
+}
+
+/* Верхняя рекламная полоса */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    z-index: 1000;
+}
+
+/* Левое меню */
+nav {
+    position: fixed;
+    top: 30px; /* ниже верхней полосы */
+    left: 0;
+    width: 200px;
+    height: calc(100% - 30px);
+    background-color: #000;
+    color: #fff;
+    padding-top: 20px;
+}
+
+nav ul {
+    list-style: none;
+}
+
+nav ul li {
+    margin: 10px 0;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    padding: 5px 10px;
+    display: block;
+}
+
+nav ul li a:hover {
+    background-color: #222;
+}
+
+/* Основной контент */
+main {
+    margin-left: 200px;
+    margin-top: 30px;
+    padding: 20px;
+    flex: 1;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+input, button {
+    padding: 10px;
+    margin: 5px 0;
+    width: 100%;
+    max-width: 300px;
+}
+
+button {
+    cursor: pointer;
+    background-color: #000;
+    color: #fff;
+    border: none;
+}
+
+button:hover {
+    background-color: #222;
+}
