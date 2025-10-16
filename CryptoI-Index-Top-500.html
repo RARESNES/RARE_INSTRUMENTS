@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Индекс Топ 500 криптовалют</title>
+  <title>Страница 3 - Графики</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -17,7 +17,7 @@
   <nav>
     <ul>
       <li><a href="index.html">Калькулятор</a></li>
-      <li><a href="page2.html">Индекс Топ 500 криптовалют</a></li>
+      <li><a href="page2.html">Страница 2</a></li>
       <li><a href="page3.html">Страница 3</a></li>
     </ul>
   </nav>
@@ -25,11 +25,12 @@
   <main>
     <h1>Индекс Топ 500 криптовалют</h1>
 
-    <h2>Статический график Top 500 Market Cap Index</h2>
+    <h2>Статический график рыночной капитализации Топ 500 криптовалют</h2>
     <div class="chartContainer" style="width: 75%; margin: 40px auto;">
       <canvas id="staticChart"></canvas>
     </div>
 
+    <h2>Динамический график рыночной капитализации Топ 100 криптовалют</h2>
     <div class="chartContainer" style="width: 75%; margin: 40px auto;">
       <canvas id="dynamicChart"></canvas>
     </div>
@@ -80,7 +81,7 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'Рыночная капитализация Топ 100 криптовалют',
+            label: 'Рыночная капитализация топ-100 криптовалют',
             data: marketCaps,
             borderColor: 'rgba(255, 99, 132, 1)',
             backgroundColor: 'rgba(255, 99, 132, 0.2)',
