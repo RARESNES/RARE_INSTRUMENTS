@@ -6,7 +6,7 @@
 }
 
 :root {
-  --radius: 12px; /* Единый радиус скругления */
+  --radius: 12px;
   --nav-width: 250px;
   --header-height: 64px;
   --bg-color: #ffffff;
@@ -18,6 +18,8 @@ body {
   height: 100vh;
   background-color: var(--bg-color);
   color: #000;
+  position: relative;
+  overflow-x: hidden;
 }
 
 /* Верхняя чёрная полоса */
@@ -31,7 +33,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 900;
 }
 
 header a {
@@ -54,6 +56,7 @@ nav {
   height: calc(100% - var(--header-height));
   background-color: var(--black);
   padding-top: 20px;
+  z-index: 900;
 }
 
 nav ul {
@@ -77,9 +80,8 @@ nav ul li a:hover {
   background-color: #222;
 }
 
-/* Внутренний полукруг в углу “Г” */
-body::before {
-  content: "";
+/* ✅ Внутренний полукруг в углу “Г” */
+.corner-cut {
   position: fixed;
   top: var(--header-height);
   left: var(--nav-width);
@@ -87,7 +89,7 @@ body::before {
   height: var(--header-height);
   background: var(--bg-color);
   border-top-left-radius: var(--header-height);
-  z-index: 1001;
+  z-index: 950; /* поверх панели и шапки */
 }
 
 /* Основной контент */
@@ -144,7 +146,7 @@ h1 {
   border-collapse: collapse;
   border-radius: var(--radius);
   overflow: hidden;
-  min-width: 450px; /* немного шире */
+  min-width: 450px;
 }
 
 #resultsTable th, #resultsTable td {
