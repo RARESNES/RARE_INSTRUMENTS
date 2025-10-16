@@ -14,44 +14,84 @@
     <nav>
         <ul>
             <li><a href="index.html">Калькулятор</a></li>
-            <li><a href="page2.html">Страница 2</a></li>
+
+            <li>
+                <div class="nav-item" onclick="toggleSubmenu(this)">
+                    <span class="nav-arrow">▼</span>
+                    <span>Страница 2</span>
+                </div>
+                <ul class="nav-sublist">
+                    <li><a href="#">Подстраница 2.1</a></li>
+                    <li><a href="#">Подстраница 2.2</a></li>
+                </ul>
+            </li>
+
             <li><a href="page3.html">Страница 3</a></li>
         </ul>
     </nav>
 
     <main>
         <h1>Калькулятор сложного процента</h1>
-        <label>Начальная сумма (₽):</label>
+
+        <label>Начальная сумма ($):</label>
         <input type="number" id="principal" placeholder="1000">
 
-        <label>Процент в месяц (%):</label>
-        <input type="number" id="rate" placeholder="5">
+        <label>Процент за сделку (%):</label>
+        <input type="number" id="rate" placeholder="1">
 
-        <label>Количество месяцев:</label>
-        <input type="number" id="months" placeholder="12">
+        <label>Количество сделок:</label>
+        <input type="number" id="trades" placeholder="10">
 
         <button onclick="calculate()">Рассчитать</button>
 
-        <h2>Результат: <span id="result">0</span> ₽</h2>
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th>Сделка</th>
+                    <th>Прибыль</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+        </table>
     </main>
 
     <script>
+        function toggleSubmenu(el) {
+            const arrow = el.querySelector('.nav-arrow');
+            const submenu = el.nextElementSibling;
+            arrow.classList.toggle('open');
+            submenu.classList.toggle('open');
+        }
+
         function calculate() {
             const principal = parseFloat(document.getElementById('principal').value);
             const rate = parseFloat(document.getElementById('rate').value) / 100;
-            const months = parseInt(document.getElementById('months').value);
+            const trades = parseInt(document.getElementById('trades').value);
 
-            if (isNaN(principal) || isNaN(rate) || isNaN(months)) {
+            if (isNaN(principal) || isNaN(rate) || isNaN(trades)) {
                 alert('Введите корректные значения');
                 return;
             }
 
             let amount = principal;
-            for (let i = 0; i < months; i++) {
+            const resultsBody = document.getElementById('resultsBody');
+            resultsBody.innerHTML = '';
+
+            for (let i = 1; i <= trades; i++) {
                 amount += amount * rate;
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${i}</td><td>$${amount.toFixed(2)}</td>`;
+                resultsBody.appendChild(row);
             }
 
-            document.getElementById('result').textContent = amount.toFixed(2);
+            // Бесконечный вывод после расчетов (дополнительно)
+            let tradeNumber = trades + 1;
+            setInterval(() => {
+                amount += amount * rate;
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${tradeNumber++}</td><td>$${amount.toFixed(2)}</td>`;
+                resultsBody.appendChild(row);
+            }, 300); // каждые 0.3 сек новая сделка
         }
     </script>
 </body>
