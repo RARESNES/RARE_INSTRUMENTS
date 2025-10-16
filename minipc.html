@@ -6,23 +6,58 @@
   <title>Мини ПК для трейдинга</title>
   <link rel="stylesheet" href="style.css" />
   <style>
+    /* Небольшие локальные стили для сетки галереи */
+    :root {
+      --gallery-gap: 20px;
+    }
+
+  
+    /* адаптив — одна колонка на узких экранах */
+    @media (max-width: 720px) {
+      .gallery {
+        grid-template-columns: 1fr;
+      }
+      .card img {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
+      Купите криптовалюту и торгуйте на BINANCE
+    </a>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="index.html">Калькулятор</a></li>
+      <li><a href="crypto-index.html">Индекс Топ 500 криптовалют</a></li>
+      <li><a href="minipc.html">Мини ПК для трейдинга</a></li>
+    </ul>
+  </nav>
 
   <main>
     <div class="gallery" aria-label="Галерея мини-ПК">
       <div class="card">
-        <img src="mele-quieter-dl.jpg" alt="MeLE Quieter DL" />
+        <img src="mele-quieter-dl.jpg" alt="MeLE Quieter DL — Мини ПК с пассивным охлаждением" />
+        <div class="caption">MeLE Quieter DL Фанлес Мини ПК</div>
       </div>
 
       <div class="card">
-        <img src="aoostar-gt37.jpg" alt="Aoostar GT37" />
+        <img src="aoostar-gt37.jpg" alt="Aoostar GT37 — Мини ПК с мощным iGPU" />
+        <div class="caption">Aoostar GT37</div>
       </div>
 
       <div class="card">
-        <img src="maxtang-v1605b.jpg" alt="Maxtang V1605B" />
+        <img src="maxtang-v1605b.jpg" alt="Maxtang V1605B — Мини ПК с пассивным охлаждением" />
+        <div class="caption">Maxtang V1605B</div>
       </div>
 
       <div class="card">
-        <img src="radxa-5b-plus-green.jpg" alt="Radxa 5B+" />
+        <img src="radxa-5b-plus-green.jpg" alt="Radxa 5B+ - одноплатный Мини ПК с пассивным охлаждением" />
+        <div class="caption">Radxa 5B+ с Фанлес кейсом</div>
       </div>
     </div>
   </main>
@@ -30,9 +65,6 @@
   <footer></footer>
 </body>
 </html>
-
-
-
 
 
 
