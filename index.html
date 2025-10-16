@@ -1,82 +1,149 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Калькулятор криптотрейдера</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header>
-    <a href="https://www.binance.com/en?ref=SITES" target="_blank">
-      Купите криптовалюту и торгуйте на BINANCE
-    </a>
-  </header>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
 
-  <nav>
-    <ul>
-      <li><a href="index.html">Калькулятор</a></li>
-      <li><a href="page2.html">Страница 2</a></li>
-      <li><a href="page3.html">Страница 3</a></li>
-    </ul>
-  </nav>
+body {
+  display: flex;
+  height: 100vh;
+  background-color: #fff;
+  color: #000;
+}
 
-  <main>
-    <h1>Калькулятор сложного процента</h1>
+/* Верхняя чёрная полоса */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
 
-    <div class="calculator">
-      <label>Начальная сумма ($):</label>
-      <input type="number" id="principal" placeholder="1000">
+header a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 500;
+}
 
-      <label>Процент за сделку (%):</label>
-      <input type="number" id="rate" placeholder="1">
+header a:hover {
+  text-decoration: underline;
+}
 
-      <label>Количество сделок:</label>
-      <input type="number" id="trades" placeholder="10">
+/* Левая панель */
+nav {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  width: 250px;
+  height: calc(100% - 64px);
+  background-color: #000;
+  padding-top: 20px;
+}
 
-      <button onclick="calculate()">Рассчитать</button>
-    </div>
+nav ul {
+  list-style: none;
+}
 
-    <table id="resultsTable">
-      <thead>
-        <tr>
-          <th>Сделка</th>
-          <th>Прибыль</th>
-        </tr>
-      </thead>
-      <tbody id="resultsBody"></tbody>
-    </table>
-  </main>
+nav ul li {
+  margin: 10px 0;
+}
 
-  <script>
-    function calculate() {
-      const principal = parseFloat(document.getElementById('principal').value);
-      const rate = parseFloat(document.getElementById('rate').value) / 100;
-      const trades = parseInt(document.getElementById('trades').value);
-      if (isNaN(principal) || isNaN(rate) || isNaN(trades)) {
-        alert('Введите корректные значения');
-        return;
-      }
+nav ul li a {
+  display: block;
+  text-align: center;
+  padding: 8px 10px;
+  text-decoration: none;
+  color: #fff;
+  font-size: 17px;
+}
 
-      let amount = principal;
-      const resultsBody = document.getElementById('resultsBody');
-      resultsBody.innerHTML = '';
+nav ul li a:hover {
+  background-color: #222;
+}
 
-      for (let i = 1; i <= trades; i++) {
-        amount += amount * rate;
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${i}</td><td>$${amount.toFixed(2)}</td>`;
-        resultsBody.appendChild(row);
-      }
+/* Вырезанный внутренний полукруг */
+header::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 64px;
+  height: 64px;
+  background: white;
+  border-bottom-right-radius: 64px;
+  z-index: 1001;
+}
 
-      let tradeNumber = trades + 1;
-      setInterval(() => {
-        amount += amount * rate;
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${tradeNumber++}</td><td>$${amount.toFixed(2)}</td>`;
-        resultsBody.appendChild(row);
-      }, 300);
-    }
-  </script>
-</body>
-</html>
+/* Основной контент */
+main {
+  margin-left: 250px;
+  margin-top: 64px;
+  padding: 20px;
+  flex: 1;
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Калькулятор в одну строку по центру */
+.calc-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.calc-row label {
+  font-size: 14px;
+}
+
+.calc-row input, .calc-row button {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+.calc-row button {
+  background-color: #000;
+  color: #fff;
+  cursor: pointer;
+  border: none;
+}
+
+.calc-row button:hover {
+  background-color: #222;
+}
+
+/* Таблица */
+#resultsTable {
+  margin: 0 auto;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 300px;
+}
+
+#resultsTable th, #resultsTable td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+#resultsTable th {
+  background-color: #f0f0f0;
+  font-weight: 600;
+}
