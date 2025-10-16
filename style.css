@@ -6,13 +6,17 @@
 }
 
 :root {
-  --radius: 12px; /* единый радиус скругления */
+  --radius: 12px; /* Единый радиус скругления */
+  --nav-width: 250px;
+  --header-height: 64px;
+  --bg-color: #ffffff;
+  --black: #000000;
 }
 
 body {
   display: flex;
   height: 100vh;
-  background-color: #fff;
+  background-color: var(--bg-color);
   color: #000;
 }
 
@@ -22,8 +26,8 @@ header {
   top: 0;
   left: 0;
   width: 100%;
-  height: 64px;
-  background-color: #000;
+  height: var(--header-height);
+  background-color: var(--black);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,11 +48,11 @@ header a:hover {
 /* Левая панель */
 nav {
   position: fixed;
-  top: 64px;
+  top: var(--header-height);
   left: 0;
-  width: 250px;
-  height: calc(100% - 64px);
-  background-color: #000;
+  width: var(--nav-width);
+  height: calc(100% - var(--header-height));
+  background-color: var(--black);
   padding-top: 20px;
 }
 
@@ -73,23 +77,23 @@ nav ul li a:hover {
   background-color: #222;
 }
 
-/* Вырез внутреннего угла (правый край панели / нижний край верхней) */
-header::after {
+/* Внутренний полукруг в углу “Г” */
+body::before {
   content: "";
-  position: absolute;
-  top: 64px;
-  left: 250px;
-  width: 64px;
-  height: 64px;
-  background: white;
-  border-top-left-radius: 64px;
+  position: fixed;
+  top: var(--header-height);
+  left: var(--nav-width);
+  width: var(--header-height);
+  height: var(--header-height);
+  background: var(--bg-color);
+  border-top-left-radius: var(--header-height);
   z-index: 1001;
 }
 
 /* Основной контент */
 main {
-  margin-left: 250px;
-  margin-top: 64px;
+  margin-left: var(--nav-width);
+  margin-top: var(--header-height);
   padding: 20px;
   flex: 1;
   text-align: center;
@@ -100,7 +104,7 @@ h1 {
   text-align: center;
 }
 
-/* Калькулятор в одну строку по центру */
+/* Калькулятор */
 .calc-row {
   display: flex;
   flex-wrap: wrap;
@@ -122,11 +126,11 @@ h1 {
 }
 
 .calc-row button {
-  background-color: #000;
+  background-color: var(--black);
   color: #fff;
   cursor: pointer;
   border: none;
-  min-width: 140px;
+  min-width: 160px;
   border-radius: var(--radius);
 }
 
@@ -140,7 +144,7 @@ h1 {
   border-collapse: collapse;
   border-radius: var(--radius);
   overflow: hidden;
-  min-width: 400px; /* немного шире */
+  min-width: 450px; /* немного шире */
 }
 
 #resultsTable th, #resultsTable td {
