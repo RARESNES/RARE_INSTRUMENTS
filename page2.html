@@ -1,97 +1,106 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Top 500 Index</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
-  h1, h2 { text-align: center; }
-  .chartContainer { width: 100%; max-width: 1000px; margin: 40px auto; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Страница 3 - Графики</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header>
+    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
+      Торговать криптовалютами на BINANCE
+    </a>
+  </header>
 
-<h1>Индекс топ-500 криптовалют</h1>
+  <nav>
+    <ul>
+      <li><a href="index.html">Калькулятор</a></li>
+      <li><a href="page2.html">Страница 2</a></li>
+      <li><a href="page3.html">Страница 3</a></li>
+    </ul>
+  </nav>
 
-<h2>Статический график Top 500 Market Cap Index</h2>
-<div class="chartContainer">
-  <canvas id="staticChart"></canvas>
-</div>
+  <main>
+    <h1>Индекс топ-500 криптовалют</h1>
 
-<h2>Динамический график рыночной капитализации топ-100 криптовалют</h2>
-<div class="chartContainer">
-  <canvas id="dynamicChart"></canvas>
-</div>
+    <h2>Статический график Top 500 Market Cap Index</h2>
+    <div class="chartContainer">
+      <canvas id="staticChart"></canvas>
+    </div>
 
-<script>
-// --- Статический график ---
-const staticLabels = ['2025-01-01', '2025-02-01', '2025-03-01', '2025-04-01', '2025-05-01'];
-const staticData = {
-    labels: staticLabels,
-    datasets: [{
+    <h2>Динамический график рыночной капитализации топ-100 криптовалют</h2>
+    <div class="chartContainer">
+      <canvas id="dynamicChart"></canvas>
+    </div>
+  </main>
+
+  <script>
+    // --- Статический график ---
+    const staticLabels = ['2025-01-01', '2025-02-01', '2025-03-01', '2025-04-01', '2025-05-01'];
+    const staticData = {
+      labels: staticLabels,
+      datasets: [{
         label: 'Top 500 Market Cap Index',
         data: [1000, 1200, 1150, 1300, 1250],
         borderColor: 'rgba(75, 192, 192, 1)',
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         fill: true,
         tension: 0.3
-    }]
-};
+      }]
+    };
 
-new Chart(document.getElementById('staticChart'), {
-    type: 'line',
-    data: staticData,
-    options: {
+    new Chart(document.getElementById('staticChart'), {
+      type: 'line',
+      data: staticData,
+      options: {
         responsive: true,
         plugins: { legend: { display: true }, tooltip: { mode: 'index', intersect: false } },
         scales: {
-            x: { display: true, title: { display: true, text: 'Дата' } },
-            y: { display: true, title: { display: true, text: 'Индекс' } }
+          x: { display: true, title: { display: true, text: 'Дата' } },
+          y: { display: true, title: { display: true, text: 'Индекс' } }
         }
-    }
-});
-
-// --- Динамический график ---
-async function fetchCryptoData() {
-  const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1');
-  const data = await response.json();
-  return data;
-}
-
-async function updateDynamicChart() {
-  const data = await fetchCryptoData();
-  const labels = data.map(coin => coin.name);
-  const marketCaps = data.map(coin => coin.market_cap);
-
-  new Chart(document.getElementById('dynamicChart'), {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Рыночная капитализация топ-100 криптовалют',
-        data: marketCaps,
-        borderColor: 'rgba(255, 99, 132, 1)',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        fill: true,
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: true }, tooltip: { mode: 'index', intersect: false } },
-      scales: {
-        x: { display: true, title: { display: true, text: 'Криптовалюты' } },
-        y: { display: true, title: { display: true, text: 'Рыночная капитализация (USD)' } }
       }
+    });
+
+    // --- Динамический график ---
+    async function fetchCryptoData() {
+      const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1');
+      const data = await response.json();
+      return data;
     }
-  });
-}
 
-// Инициализация динамического графика
-updateDynamicChart();
-</script>
+    async function updateDynamicChart() {
+      const data = await fetchCryptoData();
+      const labels = data.map(coin => coin.name);
+      const marketCaps = data.map(coin => coin.market_cap);
 
+      new Chart(document.getElementById('dynamicChart'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Рыночная капитализация топ-100 криптовалют',
+            data: marketCaps,
+            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: true }, tooltip: { mode: 'index', intersect: false } },
+          scales: {
+            x: { display: true, title: { display: true, text: 'Криптовалюты' } },
+            y: { display: true, title: { display: true, text: 'Рыночная капитализация (USD)' } }
+          }
+        }
+      });
+    }
+
+    updateDynamicChart();
+  </script>
 </body>
 </html>
