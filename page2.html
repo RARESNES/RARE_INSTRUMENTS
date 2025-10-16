@@ -1,105 +1,97 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Крипто‑индекс TOP‑500</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 2rem;}
-        #chartContainer {max-width: 900px; margin: auto;}
-    </style>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Top 500 Index</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+  h1, h2 { text-align: center; }
+  .chartContainer { width: 100%; max-width: 1000px; margin: 40px auto; }
+</style>
 </head>
 <body>
-    <h2>Крипто‑индекс TOP‑500 (по рыночной капитализации)</h2>
-    <div id="chartContainer">
-        <canvas id="cryptoChart"></canvas>
-    </div>
 
-    <script>
-        // ---------- 1. Параметры ----------
-        const COINGECKO_API = "https://api.coingecko.com/api/v3/coins/markets";
-        const CURRENCY = "usd";          // валюта, в которой берём капитализацию
-        const PER_PAGE = 250;            // CoinGecko возвращает максимум 250 за запрос
-        const TOTAL_COINS = 500;         // сколько монет включаем в индекс
-        const DAYS = 30;                 // период отображения (30 дней)
+<h1>Индекс топ-500 криптовалют</h1>
 
-        // ---------- 2. Вспомогательные функции ----------
-        // Формат даты YYYY‑MM‑DD
-        function fmtDate(date) {
-            return date.toISOString().split('T')[0];
+<h2>Статический график Top 500 Market Cap Index</h2>
+<div class="chartContainer">
+  <canvas id="staticChart"></canvas>
+</div>
+
+<h2>Динамический график рыночной капитализации топ-100 криптовалют</h2>
+<div class="chartContainer">
+  <canvas id="dynamicChart"></canvas>
+</div>
+
+<script>
+// --- Статический график ---
+const staticLabels = ['2025-01-01', '2025-02-01', '2025-03-01', '2025-04-01', '2025-05-01'];
+const staticData = {
+    labels: staticLabels,
+    datasets: [{
+        label: 'Top 500 Market Cap Index',
+        data: [1000, 1200, 1150, 1300, 1250],
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        fill: true,
+        tension: 0.3
+    }]
+};
+
+new Chart(document.getElementById('staticChart'), {
+    type: 'line',
+    data: staticData,
+    options: {
+        responsive: true,
+        plugins: { legend: { display: true }, tooltip: { mode: 'index', intersect: false } },
+        scales: {
+            x: { display: true, title: { display: true, text: 'Дата' } },
+            y: { display: true, title: { display: true, text: 'Индекс' } }
         }
+    }
+});
 
-        // Получить исторические цены (market cap) за N дней
-        async function fetchHistorical(coinId) {
-            const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=${CURRENCY}&days=${DAYS}`;
-            const resp = await fetch(url);
-            const data = await resp.json();
-            // data.market_cap – массив [timestamp, cap]
-            return data.market_cap.map(p => ({date: fmtDate(new Date(p[0])), cap: p[1]}));
-        }
+// --- Динамический график ---
+async function fetchCryptoData() {
+  const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1');
+  const data = await response.json();
+  return data;
+}
 
-        // ---------- 3. Основная логика ----------
-        (async () => {
-            // 3.1 Получаем список топ‑500 монет (по 2 запросам по 250)
-            const pages = Math.ceil(TOTAL_COINS / PER_PAGE);
-            let allCoins = [];
-            for (let page = 1; page <= pages; page++) {
-                const url = `${COINGECKO_API}?vs_currency=${CURRENCY}&order=market_cap_desc&per_page=${PER_PAGE}&page=${page}&sparkline=false`;
-                const resp = await fetch(url);
-                const data = await resp.json();
-                allCoins = allCoins.concat(data);
-            }
-            const topCoins = allCoins.slice(0, TOTAL_COINS);
+async function updateDynamicChart() {
+  const data = await fetchCryptoData();
+  const labels = data.map(coin => coin.name);
+  const marketCaps = data.map(coin => coin.market_cap);
 
-            // 3.2 Скачиваем исторические рыночные капитализации для каждой монеты
-            const histories = await Promise.all(
-                topCoins.map(c => fetchHistorical(c.id))
-            );
+  new Chart(document.getElementById('dynamicChart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Рыночная капитализация топ-100 криптовалют',
+        data: marketCaps,
+        borderColor: 'rgba(255, 99, 132, 1)',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: true }, tooltip: { mode: 'index', intersect: false } },
+      scales: {
+        x: { display: true, title: { display: true, text: 'Криптовалюты' } },
+        y: { display: true, title: { display: true, text: 'Рыночная капитализация (USD)' } }
+      }
+    }
+  });
+}
 
-            // 3.3 Сводим данные по датам
-            const dates = histories[0].map(p => p.date); // одинаковый набор дат у всех
-            const dailyTotal = dates.map((d, i) => {
-                let sum = 0;
-                histories.forEach(hist => sum += hist[i].cap);
-                return sum;
-            });
+// Инициализация динамического графика
+updateDynamicChart();
+</script>
 
-            // 3.4 Нормируем к 100 % в первый день (как делает S&P 500)
-            const base = dailyTotal[0];
-            const indexValues = dailyTotal.map(v => (v / base) * 100);
-
-            // 3.5 Рисуем график
-            const ctx = document.getElementById('cryptoChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'TOP‑500 Crypto Index',
-                        data: indexValues,
-                        borderColor: '#ff6600',
-                        backgroundColor: 'rgba(255,102,0,0.1)',
-                        tension: 0.2,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {display: true}
-                    },
-                    scales: {
-                        x: {display: true, title: {display: true, text: 'Дата'}},
-                        y: {display: true, title: {display: true, text: 'Индекс (база = 100)'}}
-                    }
-                }
-            });
-        })();
-    </script>
 </body>
 </html>
-
-
-
-
