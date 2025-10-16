@@ -1,126 +1,82 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Калькулятор криптотрейдера</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <div class="header-left"></div> <!-- декоративная левая часть для скругления -->
-    <div class="header-content">Купите криптовалюту и торгуйте на BINANCE</div>
+    <a href="https://www.binance.com/en?ref=SITES" target="_blank">
+      Купите криптовалюту и торгуйте на BINANCE
+    </a>
   </header>
 
   <nav>
     <ul>
       <li><a href="index.html">Калькулятор</a></li>
-
-      <li>
-        <a class="nav-item" href="page2.html">Страница 2</a>
-      </li>
-
-      <li>
-        <a class="nav-item" href="page3.html">Страница 3</a>
-      </li>
+      <li><a href="page2.html">Страница 2</a></li>
+      <li><a href="page3.html">Страница 3</a></li>
     </ul>
   </nav>
 
   <main>
     <h1>Калькулятор сложного процента</h1>
 
-    <div class="form" aria-label="Форма расчёта">
-      <label for="principal">Начальная сумма ($):</label>
-      <input id="principal" type="number" placeholder="1000" />
+    <div class="calculator">
+      <label>Начальная сумма ($):</label>
+      <input type="number" id="principal" placeholder="1000">
 
-      <label for="rate">Процент за сделку (%):</label>
-      <input id="rate" type="number" step="0.01" placeholder="1" />
+      <label>Процент за сделку (%):</label>
+      <input type="number" id="rate" placeholder="1">
 
-      <label for="trades">Количество сделок:</label>
-      <input id="trades" type="number" placeholder="10" />
+      <label>Количество сделок:</label>
+      <input type="number" id="trades" placeholder="10">
 
-      <button id="calcBtn">Рассчитать</button>
+      <button onclick="calculate()">Рассчитать</button>
     </div>
 
-    <div class="results-wrapper" aria-live="polite">
-      <table id="resultsTable" aria-label="Результаты">
-        <thead>
-          <tr>
-            <th>Сделка</th>
-            <th>Прибыль</th>
-          </tr>
-        </thead>
-        <tbody id="resultsBody"></tbody>
-      </table>
-    </div>
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>Сделка</th>
+          <th>Прибыль</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
   </main>
 
-  <footer></footer>
-
   <script>
-    // навешиваем поведение "выпадающих" пунктов (резерв, в текущем навбаре нет вложенных подстраниц)
-    function toggleSubmenu(el) {
-      // el — элемент .nav-item который был нажат
-      const arrow = el.querySelector('.nav-arrow');
-      const sub = el.nextElementSibling;
-      if (!sub) return;
-      const opening = !sub.classList.contains('open');
-      sub.classList.toggle('open', opening);
-      if (arrow) arrow.classList.toggle('open', opening);
-    }
+    function calculate() {
+      const principal = parseFloat(document.getElementById('principal').value);
+      const rate = parseFloat(document.getElementById('rate').value) / 100;
+      const trades = parseInt(document.getElementById('trades').value);
+      if (isNaN(principal) || isNaN(rate) || isNaN(trades)) {
+        alert('Введите корректные значения');
+        return;
+      }
 
-    // Калькулятор и бесконечная выдача
-    (function () {
-      const principalEl = document.getElementById('principal');
-      const rateEl = document.getElementById('rate');
-      const tradesEl = document.getElementById('trades');
-      const btn = document.getElementById('calcBtn');
+      let amount = principal;
       const resultsBody = document.getElementById('resultsBody');
+      resultsBody.innerHTML = '';
 
-      let intervalId = null;
+      for (let i = 1; i <= trades; i++) {
+        amount += amount * rate;
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${i}</td><td>$${amount.toFixed(2)}</td>`;
+        resultsBody.appendChild(row);
+      }
 
-      btn.addEventListener('click', () => {
-        const p = parseFloat(principalEl.value);
-        const r = parseFloat(rateEl.value) / 100;
-        const t = parseInt(tradesEl.value, 10);
-
-        if (isNaN(p) || isNaN(r) || isNaN(t)) {
-          alert('Введите корректные значения');
-          return;
-        }
-
-        // Если уже работал — остановим старый интервал
-        if (intervalId) {
-          clearInterval(intervalId);
-          intervalId = null;
-        }
-
-        resultsBody.innerHTML = '';
-        let amount = p;
-        let tradeNumber = 1;
-
-        // Выводим начальные t сделок
-        for (let i = 0; i < t; i++) {
-          amount += amount * r;
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${tradeNumber}</td><td>$${amount.toFixed(2)}</td>`;
-          resultsBody.appendChild(tr);
-          tradeNumber++;
-        }
-
-        // Бесконечный поток: добавляем новые строки каждые 300ms
-        intervalId = setInterval(() => {
-          amount += amount * r;
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${tradeNumber}</td><td>$${amount.toFixed(2)}</td>`;
-          resultsBody.appendChild(tr);
-          tradeNumber++;
-
-          // аккуратно — скроллим к последней записи
-          tr.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }, 300);
-      });
-    })();
+      let tradeNumber = trades + 1;
+      setInterval(() => {
+        amount += amount * rate;
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${tradeNumber++}</td><td>$${amount.toFixed(2)}</td>`;
+        resultsBody.appendChild(row);
+      }, 300);
+    }
   </script>
 </body>
 </html>
