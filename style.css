@@ -5,6 +5,10 @@
   font-family: Arial, sans-serif;
 }
 
+:root {
+  --radius: 12px; /* единый радиус скругления */
+}
+
 body {
   display: flex;
   height: 100vh;
@@ -69,16 +73,16 @@ nav ul li a:hover {
   background-color: #222;
 }
 
-/* Вырезанный внутренний полукруг */
+/* Вырез внутреннего угла (правый край панели / нижний край верхней) */
 header::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 64px;
+  left: 250px;
   width: 64px;
   height: 64px;
   background: white;
-  border-bottom-right-radius: 64px;
+  border-top-left-radius: 64px;
   z-index: 1001;
 }
 
@@ -112,7 +116,7 @@ h1 {
 
 .calc-row input, .calc-row button {
   padding: 10px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   border: 1px solid #ccc;
   font-size: 15px;
 }
@@ -122,6 +126,8 @@ h1 {
   color: #fff;
   cursor: pointer;
   border: none;
+  min-width: 140px;
+  border-radius: var(--radius);
 }
 
 .calc-row button:hover {
@@ -132,9 +138,9 @@ h1 {
 #resultsTable {
   margin: 0 auto;
   border-collapse: collapse;
-  border-radius: 12px;
+  border-radius: var(--radius);
   overflow: hidden;
-  min-width: 300px;
+  min-width: 400px; /* немного шире */
 }
 
 #resultsTable th, #resultsTable td {
