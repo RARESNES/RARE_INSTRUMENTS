@@ -62,7 +62,7 @@ nav ul li a:hover {
 
 /* Основной контент */
 main {
-    margin-left: 200px;
+    margin-left: 250px;
     margin-top: 64px;
     padding: 20px;
     flex: 1;
@@ -89,5 +89,6 @@ button {
 button:hover {
     background-color: #222;
 }
+
 
 
