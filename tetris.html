@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тетрис</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
+      Торговать криптовалютами на BINANCE
+    </a>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="index.html">Калькулятор</a></li>
+      <li><a href="crypto-index.html">Индекс Топ 500 криптовалют</a></li>
+      <li><a href="minipc.html">Мини ПК для трейдинга</a></li>
+      <li><a href="converter.html">Конвертер криптовалют</a></li>
+      <li><a href="elon.html">Илон Маск Twitter/X</a></li>
+      <li><a href="tetris.html">Тетрис</a></li>
+    </ul>
+
+/* Основная область для игры */
+main {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Canvas на весь блок */
+canvas {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  display: block;
+}
+
+  <main>
+    <canvas id="nes-canvas" width="256" height="240"></canvas>
+  </main>
+</div>
+
+<!-- JSNES через CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsnes/1.2.1/jsnes.min.js"></script>
+<script>
+const canvas = document.getElementById('nes-canvas');
+const ctx = canvas.getContext('2d');
+
+// Инициализация NES
+const nes = new jsnes.NES({
+    onFrame: function(frameBuffer){
+        const imageData = ctx.getImageData(0,0,256,240);
+        for(let i=0;i<frameBuffer.length;i++){
+            imageData.data[i] = frameBuffer[i];
+        }
+        ctx.putImageData(imageData,0,0);
+    }
+});
+
+// Функция для загрузки ROM
+function loadNESGame(filename){
+    fetch(filename)
+      .then(res => res.arrayBuffer())
+      .then(buffer => nes.loadROM(new Uint8Array(buffer)))
+      .then(()=> nes.start());
+}
+
+// Загрузи ROM (замени на нужную)
+loadNESGame('Tetris.nes');
+
+// Управление
+document.addEventListener('keydown', e => {
+    switch(e.key){
+        case 'ArrowLeft': nes.buttonDown(1, jsnes.Controller.BUTTON_LEFT); break;
+        case 'ArrowRight': nes.buttonDown(1, jsnes.Controller.BUTTON_RIGHT); break;
+        case 'ArrowUp': nes.buttonDown(1, jsnes.Controller.BUTTON_UP); break;
+        case 'ArrowDown': nes.buttonDown(1, jsnes.Controller.BUTTON_DOWN); break;
+        case 'z': nes.buttonDown(1, jsnes.Controller.BUTTON_A); break;
+        case 'x': nes.buttonDown(1, jsnes.Controller.BUTTON_B); break;
+        case 'Enter': nes.buttonDown(1, jsnes.Controller.BUTTON_START); break;
+        case 'Shift': nes.buttonDown(1, jsnes.Controller.BUTTON_SELECT); break;
+    }
+});
+document.addEventListener('keyup', e => {
+    switch(e.key){
+        case 'ArrowLeft': nes.buttonUp(1, jsnes.Controller.BUTTON_LEFT); break;
+        case 'ArrowRight': nes.buttonUp(1, jsnes.Controller.BUTTON_RIGHT); break;
+        case 'ArrowUp': nes.buttonUp(1, jsnes.Controller.BUTTON_UP); break;
+        case 'ArrowDown': nes.buttonUp(1, jsnes.Controller.BUTTON_DOWN); break;
+        case 'z': nes.buttonUp(1, jsnes.Controller.BUTTON_A); break;
+        case 'x': nes.buttonUp(1, jsnes.Controller.BUTTON_B); break;
+        case 'Enter': nes.buttonUp(1, jsnes.Controller.BUTTON_START); break;
+        case 'Shift': nes.buttonUp(1, jsnes.Controller.BUTTON_SELECT); break;
+    }
+});
+</script>
+
+</body>
+</html>
