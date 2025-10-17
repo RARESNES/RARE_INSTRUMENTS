@@ -1,274 +1,66 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Конвертер криптовалют</title>
-  <link rel="stylesheet" href="style.css" />
-  <style>
-    :root {
-      --radius: 12px;
-      --input-height: 48px;
-    }
-
-    main {
-      padding: 32px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .card {
-      width: 100%;
-      max-width: 1000px;
-      background: #fff;
-      border-radius: var(--radius);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-      padding: 22px;
-      box-sizing: border-box;
-    }
-
-    h1 {
-      margin: 0 0 18px 0;
-      text-align: center;
-      font-size: 22px;
-    }
-
-    .form-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    input[type="number"],
-    input[list] {
-      height: var(--input-height);
-      padding: 0 12px;
-      border-radius: var(--radius);
-      border: 1px solid #ddd;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-
-    .amount {
-      width: 200px;
-    }
-
-    .currency-input {
-      width: 200px;
-      text-transform: uppercase;
-    }
-
-    button {
-      height: var(--input-height);
-      padding: 0 32px;
-      background: #000;
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      font-size: 16px;
-      white-space: nowrap;
-    }
-
-    .result {
-      margin-top: 18px;
-      text-align: center;
-      font-size: 16px;
-    }
-
-    .meta {
-      margin-top: 8px;
-      color: #666;
-      text-align: center;
-      font-size: 13px;
-    }
-
-    .error {
-      color: #b00020;
-      text-align: center;
-      margin-top: 8px;
-    }
-
-    @media(max-width: 800px){
-      .form-row { flex-direction: column; }
-      input, button { width: 100%; }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Крипто Конвертер</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  input, button { padding: 10px; font-size: 16px; margin-right: 10px; }
+  #result { margin-top: 20px; font-weight: bold; }
+</style>
 </head>
 <body>
-  <header>
-    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
-      Купите криптовалюту и торгуйте на BINANCE
-    </a>
-  </header>
 
-  <nav>
-    <ul>
-      <li><a href="index.html">Калькулятор</a></li>
-      <li><a href="crypto-index.html">Индекс Топ 500 криптовалют</a></li>
-      <li><a href="minipc.html">Мини ПК для трейдинга</a></li>
-      <li><a href="converter.html">Конвертер криптовалют</a></li>
-    </ul>
-  </nav>
+<h2>Конвертер криптовалют</h2>
+<input type="text" id="tickers" placeholder="Введите тикеры, например: DODO CAKE" />
+<button onclick="convertCrypto()">Конвертировать</button>
 
-  <div class="corner-cut" style="display:none;"></div>
-
-  <main>
-    <div class="card">
-      <h1>Конвертер криптовалют</h1>
-
-      <div class="form-row">
-        <input class="amount" id="amount" type="number" min="0" step="any" value="1" aria-label="Количество">
-
-        <input list="cryptoList" id="fromInput" class="currency-input" placeholder="BTC" autocomplete="off" />
-        <span style="align-self:center;">→</span>
-        <input list="cryptoList" id="toInput" class="currency-input" placeholder="USDT" autocomplete="off" />
-
-        <button id="convertBtn">Конвертировать</button>
-      </div>
-
-      <datalist id="cryptoList"></datalist>
-
-      <div class="result" id="result">Результат: —</div>
-      <div class="meta" id="meta">Курс: — · Обновлено: —</div>
-      <div class="error" id="error" role="alert" aria-live="assertive"></div>
-    </div>
-  </main>
+<div id="result"></div>
 
 <script>
-const amountEl = document.getElementById('amount');
-const fromInput = document.getElementById('fromInput');
-const toInput = document.getElementById('toInput');
-const resultEl = document.getElementById('result');
-const metaEl = document.getElementById('meta');
-const errorEl = document.getElementById('error');
-const btn = document.getElementById('convertBtn');
-const listEl = document.getElementById('cryptoList');
+async function convertCrypto() {
+    const input = document.getElementById('tickers').value.trim();
+    if(!input) return alert("Введите тикеры!");
 
-const fiatList = ["USD","EUR","RUB","UAH","GBP"];
-const CACHE_TTL = 5 * 60 * 1000;
-const cache = {};
-let symbolToId = {};
+    const tickers = input.split(/\s+/).map(t => t.toLowerCase());
+    
+    try {
+        // Получаем список всех монет с CoinGecko
+        const coinsListRes = await fetch('https://api.coingecko.com/api/v3/coins/list');
+        const coinsList = await coinsListRes.json();
 
-function toKey(url){return 'cache_'+url;}
-async function fetchWithCache(url){
-  const key = toKey(url);
-  const now = Date.now();
-  if(cache[key] && now - cache[key].ts < CACHE_TTL) return cache[key].data;
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('HTTP '+r.status);
-  const data = await r.json();
-  cache[key] = {ts:now,data};
-  return data;
-}
+        let ids = [];
+        tickers.forEach(ticker => {
+            const coin = coinsList.find(c => c.symbol.toLowerCase() === ticker);
+            if(coin) ids.push(coin.id);
+        });
 
-// Загружаем Топ-500 криптовалют
-async function loadList(){
-  try {
-    const url1 = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1';
-    const url2 = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=2';
-    const [page1, page2] = await Promise.all([fetchWithCache(url1), fetchWithCache(url2)]);
-    const list = [...page1, ...page2];
+        if(ids.length === 0) {
+            document.getElementById('result').innerText = "Тикеры не найдены!";
+            return;
+        }
 
-    const added = new Set();
+        // Получаем цены в USD
+        const priceRes = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=usd`);
+        const prices = await priceRes.json();
 
-    list.forEach(c => {
-      const sym = c.symbol.toUpperCase();
-      if (!added.has(sym)) {
-        added.add(sym);
-        symbolToId[sym] = c.id;
-        const opt = document.createElement('option');
-        opt.value = sym;
-        listEl.appendChild(opt);
-      }
-    });
+        let output = "";
+        tickers.forEach(ticker => {
+            const coin = coinsList.find(c => c.symbol.toLowerCase() === ticker);
+            if(coin && prices[coin.id]) {
+                output += `${ticker.toUpperCase()}: $${prices[coin.id].usd}\n`;
+            } else {
+                output += `${ticker.toUpperCase()}: не найдено\n`;
+            }
+        });
 
-    fiatList.forEach(f=>{
-      symbolToId[f] = 'fiat:'+f.toLowerCase();
-      const opt = document.createElement('option');
-      opt.value = f;
-      listEl.appendChild(opt);
-    });
-
-    fromInput.value = 'BTC';
-    toInput.value = 'USDT';
-  } catch (e) {
-    console.error(e);
-    errorEl.textContent = 'Ошибка загрузки списка криптовалют.';
-  }
-}
-
-function parseVal(v){const n=Number(v);return isNaN(n)?0:n;}
-
-async function fetchPrices(ids, vs){
-  const key = ids.join(',')+'|'+vs.join(',');
-  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=${vs.join(',')}`;
-  return fetchWithCache(url);
-}
-
-async function doConvert(){
-  errorEl.textContent = '';
-  const amount = parseVal(amountEl.value);
-  if(amount<=0){resultEl.textContent='Результат: введите положительное число';return;}
-
-  const fromSym = fromInput.value.trim().toUpperCase();
-  const toSym = toInput.value.trim().toUpperCase();
-  const fromId = symbolToId[fromSym];
-  const toId = symbolToId[toSym];
-
-  if(!fromId || !toId){
-    errorEl.textContent = 'Неизвестный тикер валюты.';
-    return;
-  }
-
-  const fromIsFiat = fromId.startsWith('fiat:');
-  const toIsFiat = toId.startsWith('fiat:');
-  const refFiat = 'usd';
-
-  try{
-    if(!fromIsFiat && !toIsFiat){
-      const data = await fetchPrices([fromId,toId],[refFiat]);
-      const p1 = data[fromId][refFiat], p2 = data[toId][refFiat];
-      const val = amount*p1/p2;
-      resultEl.textContent = `Результат: ${val.toFixed(8)} ${toSym}`;
-      metaEl.textContent = `Курс: 1 ${fromSym} = ${(p1/p2).toFixed(8)} ${toSym}`;
-    }else if(!fromIsFiat && toIsFiat){
-      const toFiat = toId.split(':')[1];
-      const data = await fetchPrices([fromId],[toFiat]);
-      const p = data[fromId][toFiat];
-      const val = amount*p;
-      resultEl.textContent = `Результат: ${val.toFixed(8)} ${toSym}`;
-      metaEl.textContent = `Курс: 1 ${fromSym} = ${p} ${toSym}`;
-    }else if(fromIsFiat && !toIsFiat){
-      const fromFiat = fromId.split(':')[1];
-      const data = await fetchPrices([toId],[fromFiat]);
-      const p = data[toId][fromFiat];
-      const val = amount/p;
-      resultEl.textContent = `Результат: ${val.toFixed(8)} ${toSym}`;
-      metaEl.textContent = `Курс: 1 ${toSym} = ${p} ${fromSym}`;
-    }else{
-      const f1 = fromId.split(':')[1], f2 = toId.split(':')[1];
-      const data = await fetchPrices(['bitcoin'],[f1,f2]);
-      const p1 = data.bitcoin[f1], p2 = data.bitcoin[f2];
-      const rate = p1/p2;
-      const val = amount*rate;
-      resultEl.textContent = `Результат: ${val.toFixed(8)} ${toSym}`;
-      metaEl.textContent = `Курс: 1 ${fromSym} = ${rate.toFixed(8)} ${toSym}`;
+        document.getElementById('result').innerText = output;
+    } catch (e) {
+        console.error(e);
+        document.getElementById('result').innerText = "Ошибка получения данных!";
     }
-  }catch(e){
-    console.error(e);
-    errorEl.textContent = 'Ошибка при конвертации.';
-  }
 }
-
-btn.addEventListener('click',e=>{
-  e.preventDefault();
-  doConvert();
-});
-
-loadList();
 </script>
+
 </body>
 </html>
