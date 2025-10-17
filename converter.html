@@ -1,66 +1,246 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Крипто Конвертер</title>
-<style>
-  body { font-family: Arial, sans-serif; padding: 20px; }
-  input, button { padding: 10px; font-size: 16px; margin-right: 10px; }
-  #result { margin-top: 20px; font-weight: bold; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Конвертер криптовалют</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    :root {
+      --radius: 12px;
+      --card-w: 900px;
+    }
+    main {
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      width: 100%;
+      max-width: var(--card-w);
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      padding: 22px;
+      box-sizing: border-box;
+    }
+    h1 {
+      margin: 0 0 18px 0;
+      text-align: center;
+      font-size: 22px;
+    }
+    .form-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    select, input[type="number"] {
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid #ddd;
+      font-size: 15px;
+      min-width: 160px;
+    }
+    .amount { width: 160px; }
+    .select { width: 220px; }
+    button {
+      padding: 12px 24px;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+    .result {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 16px;
+    }
+    .meta {
+      margin-top: 8px;
+      color: #666;
+      text-align: center;
+      font-size: 13px;
+    }
+    .error {
+      color: #b00020;
+      text-align: center;
+      margin-top: 8px;
+    }
+    @media(max-width: 720px){
+      .form-row { flex-direction: column; }
+      select, .amount, button { width: 100%; }
+    }
+  </style>
 </head>
 <body>
+  <header>
+    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
+      Купите криптовалюту и торгуйте на BINANCE
+    </a>
+  </header>
 
-<h2>Конвертер криптовалют</h2>
-<input type="text" id="tickers" placeholder="Введите тикеры, например: DODO CAKE" />
-<button onclick="convertCrypto()">Конвертировать</button>
+  <nav>
+    <ul>
+      <li><a href="index.html">Калькулятор</a></li>
+      <li><a href="crypto-index.html">Индекс Топ 500 криптовалют</a></li>
+      <li><a href="minipc.html">Мини ПК для трейдинга</a></li>
+      <li><a href="converter.html">Конвертер криптовалют</a></li>
+    </ul>
+  </nav>
 
-<div id="result"></div>
+  <div class="corner-cut" style="display:none;"></div>
+
+  <main>
+    <div class="card">
+      <h1>Конвертер криптовалют</h1>
+
+      <div class="form-row">
+        <input class="amount" id="amount" type="number" min="0" step="any" value="1" aria-label="Количество">
+        <select id="from" class="select" aria-label="Из валюты"></select>
+        <span style="align-self:center;">→</span>
+        <select id="to" class="select" aria-label="В валюту"></select>
+        <button id="convertBtn">Конвертировать</button>
+      </div>
+
+      <div class="result" id="result">Результат: —</div>
+      <div class="meta" id="meta">Курс: — · Обновлено: —</div>
+      <div class="error" id="error" role="alert" aria-live="assertive"></div>
+    </div>
+  </main>
 
 <script>
-async function convertCrypto() {
-    const input = document.getElementById('tickers').value.trim();
-    if(!input) return alert("Введите тикеры!");
+const fromSelect = document.getElementById('from');
+const toSelect = document.getElementById('to');
+const amountEl = document.getElementById('amount');
+const resultEl = document.getElementById('result');
+const metaEl = document.getElementById('meta');
+const errorEl = document.getElementById('error');
+const btn = document.getElementById('convertBtn');
 
-    const tickers = input.split(/\s+/).map(t => t.toLowerCase());
-    
-    try {
-        // Получаем список всех монет с CoinGecko
-        const coinsListRes = await fetch('https://api.coingecko.com/api/v3/coins/list');
-        const coinsList = await coinsListRes.json();
+const fiatList = ["usd","eur","rub","uah","gbp"];
+const CACHE_TTL = 5 * 60 * 1000; // 5 минут
+const cache = {};
 
-        let ids = [];
-        tickers.forEach(ticker => {
-            const coin = coinsList.find(c => c.symbol.toLowerCase() === ticker);
-            if(coin) ids.push(coin.id);
-        });
-
-        if(ids.length === 0) {
-            document.getElementById('result').innerText = "Тикеры не найдены!";
-            return;
-        }
-
-        // Получаем цены в USD
-        const priceRes = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=usd`);
-        const prices = await priceRes.json();
-
-        let output = "";
-        tickers.forEach(ticker => {
-            const coin = coinsList.find(c => c.symbol.toLowerCase() === ticker);
-            if(coin && prices[coin.id]) {
-                output += `${ticker.toUpperCase()}: $${prices[coin.id].usd}\n`;
-            } else {
-                output += `${ticker.toUpperCase()}: не найдено\n`;
-            }
-        });
-
-        document.getElementById('result').innerText = output;
-    } catch (e) {
-        console.error(e);
-        document.getElementById('result').innerText = "Ошибка получения данных!";
-    }
+async function fetchWithCache(url, key){
+  const now = Date.now();
+  if(cache[key] && now - cache[key].ts < CACHE_TTL){
+    return cache[key].data;
+  }
+  const resp = await fetch(url);
+  if(!resp.ok) throw new Error('HTTP ' + resp.status);
+  const data = await resp.json();
+  cache[key] = {ts: now, data};
+  return data;
 }
-</script>
 
+// Загружаем список топ-500 криптовалют
+async function loadCoinList(){
+  const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1';
+  const url2 = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=2';
+
+  try {
+    const [list1, list2] = await Promise.all([
+      fetchWithCache(url,'page1'),
+      fetchWithCache(url2,'page2')
+    ]);
+    const list = [...list1, ...list2];
+    buildOptions(list);
+  } catch (e){
+    errorEl.textContent = 'Не удалось загрузить список валют.';
+    console.error(e);
+  }
+}
+
+function buildOptions(coinList){
+  coinList.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = `${c.name} (${c.symbol.toUpperCase()})`;
+    fromSelect.appendChild(opt.cloneNode(true));
+    toSelect.appendChild(opt);
+  });
+  // Фиат валюты
+  fiatList.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = 'fiat:' + f;
+    opt.textContent = f.toUpperCase();
+    fromSelect.appendChild(opt.cloneNode(true));
+    toSelect.appendChild(opt.cloneNode(true));
+  });
+  fromSelect.value = 'bitcoin';
+  toSelect.value = 'fiat:usd';
+}
+
+async function fetchPrices(idsArr, vsArr){
+  const ids = idsArr.join(',');
+  const vs = vsArr.join(',');
+  const key = ids+'|'+vs;
+  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(ids)}&vs_currencies=${encodeURIComponent(vs)}`;
+  return fetchWithCache(url,key);
+}
+
+function parseVal(v){ const n = Number(v); return isNaN(n)?0:n; }
+
+async function doConvert(){
+  errorEl.textContent = '';
+  const rawFrom = fromSelect.value;
+  const rawTo = toSelect.value;
+  const amount = parseVal(amountEl.value);
+  if(amount <= 0){ resultEl.textContent = 'Результат: введите положительное число'; return; }
+
+  const fromIsFiat = rawFrom.startsWith('fiat:');
+  const toIsFiat = rawTo.startsWith('fiat:');
+
+  try {
+    const refFiat = 'usd';
+    if(!fromIsFiat && !toIsFiat){
+      const [fromId,toId] = [rawFrom,rawTo];
+      const data = await fetchPrices([fromId,toId],[refFiat]);
+      const p1 = data[fromId][refFiat], p2 = data[toId][refFiat];
+      const value = amount*p1/p2;
+      resultEl.textContent = `Результат: ${value.toFixed(8)}`;
+      metaEl.textContent = `Курс: 1 ${fromId} = ${(p1/p2).toFixed(8)} ${toId}`;
+    } else if(!fromIsFiat && toIsFiat){
+      const fromId = rawFrom;
+      const toFiat = rawTo.split(':')[1];
+      const data = await fetchPrices([fromId],[toFiat]);
+      const p = data[fromId][toFiat];
+      const value = amount*p;
+      resultEl.textContent = `Результат: ${value.toFixed(8)} ${toFiat.toUpperCase()}`;
+      metaEl.textContent = `Курс: 1 ${fromId} = ${p} ${toFiat.toUpperCase()}`;
+    } else if(fromIsFiat && !toIsFiat){
+      const fromFiat = rawFrom.split(':')[1];
+      const toId = rawTo;
+      const data = await fetchPrices([toId],[fromFiat]);
+      const p = data[toId][fromFiat];
+      const value = amount/p;
+      resultEl.textContent = `Результат: ${value.toFixed(8)} ${toId}`;
+      metaEl.textContent = `Курс: 1 ${toId} = ${p} ${fromFiat.toUpperCase()}`;
+    } else {
+      const f1 = rawFrom.split(':')[1];
+      const f2 = rawTo.split(':')[1];
+      const data = await fetchPrices(['bitcoin'],[f1,f2]);
+      const p1 = data.bitcoin[f1], p2 = data.bitcoin[f2];
+      const rate = p1/p2;
+      const val = amount*rate;
+      resultEl.textContent = `Результат: ${val.toFixed(8)} ${f2.toUpperCase()}`;
+      metaEl.textContent = `Курс: 1 ${f1.toUpperCase()} = ${rate.toFixed(8)} ${f2.toUpperCase()}`;
+    }
+  } catch(e){
+    errorEl.textContent = 'Ошибка при конвертации.';
+    console.error(e);
+  }
+}
+
+btn.addEventListener('click',e=>{e.preventDefault();doConvert();});
+
+// Загрузка списка монет при запуске
+loadCoinList();
+</script>
 </body>
 </html>
