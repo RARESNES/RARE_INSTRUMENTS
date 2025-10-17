@@ -75,7 +75,7 @@ main {
   background: #fff;
 }
 
-/* Стандартные элементы карточек/контента */
+/* Карточки и блоки */
 .card {
   background: #fff;
   border-radius: var(--radius);
@@ -115,6 +115,11 @@ table th, table td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
+}
+
+/* Убираем полукруглый угол */
+.corner-cut {
+  display: none;
 }
 
 /* Адаптив */
