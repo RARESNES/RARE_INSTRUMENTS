@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Генератор QR-кодов для крипто-адресов</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js" defer></script>
+  <style>
+    :root {
+      --radius: 12px;
+    }
+    main {
+      margin-left: 250px;
+      margin-top: 64px;
+      padding: 20px;
+      flex: 1;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .form-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+      max-width: 1000px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .form-section label {
+      display: block;
+      margin-bottom: 5px;
+      text-align: left;
+    }
+    .form-section input, .form-section select {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: var(--radius);
+      border: 1px solid #ccc;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .buttons button {
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      min-width: 140px;
+    }
+    .buttons button:hover {
+      background-color: #222;
+    }
+    .qr-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f3f3f3;
+      padding: 20px;
+      border-radius: var(--radius);
+    }
+    .qr-area canvas {
+      background: #fff;
+      padding: 10px;
+      border-radius: var(--radius);
+    }
+    .uri-text {
+      word-break: break-all;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
+      Торговать криптовалютами на BINANCE
+    </a>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="index.html">Калькулятор</a></li>
+      <li><a href="crypto-index.html">Индекс Топ 500 криптовалют</a></li>
+      <li><a href="minipc.html">Мини ПК для трейдинга</a></li>
+      <li><a href="converter.html">Конвертер криптовалют</a></li>
+      <li><a href="elon.html">Илон Маск Twitter/X</a></li>
+      <li><a href="qr.html">Генератор QR-кодов для крипто-адресов</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1>Генератор QR-кодов для крипто-адресов</h1>
+
+    <div class="form-section">
+      <div>
+        <label for="currency">Валюта:</label>
+        <select id="currency">
+          <option value="BTC">Bitcoin (BTC)</option>
+          <option value="ETH">Ethereum (ETH)</option>
+          <option value="USDT-ERC20">USDT (ERC-20)</option>
+          <option value="USDT-TRC20">USDT (TRC-20)</option>
+          <option value="USDC">USD Coin (USDC)</option>
+          <option value="BNB">BNB</option>
+          <option value="XRP">XRP</option>
+          <option value="ADA">Cardano (ADA)</option>
+          <option value="DOGE">Dogecoin (DOGE)</option>
+          <option value="SOL">Solana (SOL)</option>
+          <option value="TRX">TRON (TRX)</option>
+          <option value="DOT">Polkadot (DOT)</option>
+          <option value="AVAX">Avalanche (AVAX)</option>
+          <option value="MATIC">Polygon (MATIC)</option>
+          <option value="LINK">Chainlink (LINK)</option>
+          <option value="LTC">Litecoin (LTC)</option>
+          <option value="BCH">Bitcoin Cash (BCH)</option>
+          <option value="UNI">Uniswap (UNI)</option>
+          <option value="ATOM">Cosmos (ATOM)</option>
+          <option value="XLM">Stellar (XLM)</option>
+          <option value="ETC">Ethereum Classic (ETC)</option>
+          <option value="FIL">Filecoin (FIL)</option>
+          <option value="APT">Aptos (APT)</option>
+          <option value="NEAR">NEAR Protocol</option>
+          <option value="HBAR">Hedera (HBAR)</option>
+          <option value="ICP">ICP</option>
+          <option value="VET">VeChain (VET)</option>
+          <option value="ARB">Arbitrum (ARB)</option>
+          <option value="OP">Optimism (OP)</option>
+          <option value="BSC">BSC / BEP-20</option>
+          <option value="CUSTOM">Другая / Просто адрес</option>
+        </select>
+
+        <label for="address">Крипто-адрес:</label>
+        <input id="address" type="text" placeholder="Введите адрес получателя">
+
+        <label for="amount">Сумма (опционально):</label>
+        <input id="amount" type="text" placeholder="0.01">
+
+        <label for="label">Метка (опционально):</label>
+        <input id="label" type="text" placeholder="order-123">
+
+        <div class="buttons">
+          <button id="generate">Сгенерировать</button>
+          <button id="copyURI">Копировать URI</button>
+          <button id="clear">Очистить</button>
+        </div>
+      </div>
+
+      <div class="qr-area">
+        <canvas id="qrCanvas" width="256" height="256"></canvas>
+        <div class="uri-text" id="uriText"></div>
+        <div class="buttons">
+          <button id="download">Скачать PNG</button>
+          <button id="saveSVG">Скачать SVG</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    window.addEventListener('load', () => {
+      const currency = document.getElementById('currency');
+      const address = document.getElementById('address');
+      const amount = document.getElementById('amount');
+      const label = document.getElementById('label');
+      const generateBtn = document.getElementById('generate');
+      const copyURI = document.getElementById('copyURI');
+      const clearBtn = document.getElementById('clear');
+      const uriText = document.getElementById('uriText');
+      const qrCanvas = document.getElementById('qrCanvas');
+      const downloadBtn = document.getElementById('download');
+      const saveSVGBtn = document.getElementById('saveSVG');
+
+      const qr = new QRious({ element: qrCanvas, size: 256, value: '' });
+
+      function buildURI(coin, addr, amt, lbl) {
+        addr = addr.trim();
+        if (!addr) return '';
+        const q = (s) => encodeURIComponent(s);
+        switch (coin) {
+          case 'BTC': {
+            let u = `bitcoin:${addr}`;
+            const p = [];
+            if (amt) p.push(`amount=${q(amt)}`);
+            if (lbl) p.push(`label=${q(lbl)}`);
+            if (p.length) u += `?${p.join('&')}`;
+            return u;
+          }
+          case 'ETH':
+          case 'USDT-ERC20':
+          case 'USDC': {
+            let u = `ethereum:${addr}`;
+            const p = [];
+            if (amt) p.push(`value=${q(amt)}`);
+            if (lbl) p.push(`label=${q(lbl)}`);
+            if (p.length) u += `?${p.join('&')}`;
+            return u;
+          }
+          case 'LTC': return `litecoin:${addr}` + (amt ? `?amount=${q(amt)}` : '');
+          case 'TRX':
+          case 'USDT-TRC20': return `tron:${addr}` + (amt ? `?amount=${q(amt)}` : '');
+          case 'DOGE': return `dogecoin:${addr}` + (amt ? `?amount=${q(amt)}` : '');
+          case 'BSC': return `bsc:${addr}` + (amt ? `?amount=${q(amt)}` : '');
+          default: return addr;
+        }
+      }
+
+      function generateQR() {
+        const uri = buildURI(currency.value, address.value, amount.value, label.value);
+        if (!uri) {
+          alert('Введите адрес.');
+          return;
+        }
+        qr.value = uri;
+        uriText.textContent = uri;
+      }
+
+      generateBtn.addEventListener('click', generateQR);
+      address.addEventListener('keydown', e => { if (e.key === 'Enter') generateQR(); });
+
+      copyURI.addEventListener('click', () => {
+        const txt = uriText.textContent;
+        if (!txt) {
+          alert('Нет URI');
+          return;
+        }
+        navigator.clipboard.writeText(txt).then(() => {
+          copyURI.textContent = 'Скопировано!';
+          setTimeout(() => copyURI.textContent = 'Копировать URI', 1200);
+        });
+      });
+
+      clearBtn.addEventListener('click', () => {
+        address.value = '';
+        amount.value = '';
+        label.value = '';
+        uriText.textContent = '';
+        qr.value = '';
+      });
+
+      downloadBtn.addEventListener('click', () => {
+        const dataURL = qrCanvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = dataURL;
+        a.download = `qr-${currency.value.toLowerCase()}.png`;
+        a.click();
+      });
+
+      saveSVGBtn.addEventListener('click', () => {
+        const png = qrCanvas.toDataURL('image/png');
+        const svg = `<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><image href='${png}' width='256' height='256'/></svg>`;
+        const blob = new Blob([svg], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `qr-${currency.value.toLowerCase()}.svg`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    });
+  </script>
+</body>
+</html>
