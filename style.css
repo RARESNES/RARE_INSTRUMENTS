@@ -73,18 +73,6 @@ nav ul li a:hover {
   background-color: #222;
 }
 
-/* Вырез внутреннего угла (правый край панели / нижний край верхней) */
-header::after {
-  content: "";
-  position: absolute;
-  top: 64px;
-  left: 250px;
-  width: 64px;
-  height: 64px;
-  background: white;
-  border-top-left-radius: 64px;
-  z-index: 1001;
-}
 
 /* Основной контент */
 main {
