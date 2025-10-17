@@ -1,12 +1,3 @@
-:root {
-  --nav-width: 250px;
-  --topbar-height: 64px;
-  --radius: 12px;
-  --content-padding: 24px;
-  --font-nav: 16px;
-}
-
-/* Сброс */
 * {
   margin: 0;
   padding: 0;
@@ -14,132 +5,151 @@
   font-family: Arial, sans-serif;
 }
 
-/* Верхняя черная полоска */
+:root {
+  --radius: 12px; /* единый радиус скругления */
+}
+
+body {
+  display: flex;
+  height: 100vh;
+  background-color: #fff;
+  color: #000;
+}
+
+/* Верхняя чёрная полоса */
 header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: var(--topbar-height);
-  background: #000;
-  color: #fff;
+  height: 64px;
+  background-color: #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
   z-index: 1000;
-  border-radius: 0; /* убираем скругления */
 }
 
-/* Левая панель навигации */
+header a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+header a:hover {
+  text-decoration: underline;
+}
+
+/* Левая панель */
 nav {
   position: fixed;
-  top: 0;
+  top: 64px;
   left: 0;
-  width: var(--nav-width);
-  height: 100%;
-  background: #000;
-  color: #fff;
-  padding-top: var(--topbar-height); /* чтобы не перекрывало верхнюю полоску */
-  z-index: 999;
-  border-radius: 0; /* убираем скругления */
+  width: 250px;
+  height: calc(100% - 64px);
+  background-color: #000;
+  padding-top: 20px;
 }
 
 nav ul {
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
+}
+
+nav ul li {
+  margin: 10px 0;
 }
 
 nav ul li a {
-  color: #fff;
-  text-decoration: none;
-  font-size: var(--font-nav);
-  text-align: center; /* все ссылки по центру */
   display: block;
-  padding: 8px 0;
+  text-align: center;
+  padding: 8px 10px;
+  text-decoration: none;
+  color: #fff;
+  font-size: 17px;
 }
 
 nav ul li a:hover {
-  background: #111;
-  border-radius: var(--radius);
+  background-color: #222;
+}
+
+/* Вырез внутреннего угла (правый край панели / нижний край верхней) */
+header::after {
+  content: "";
+  position: absolute;
+  top: 64px;
+  left: 250px;
+  width: 64px;
+  height: 64px;
+  background: white;
+  border-top-left-radius: 64px;
+  z-index: 1001;
 }
 
 /* Основной контент */
 main {
-  margin-left: var(--nav-width);
-  padding: calc(var(--topbar-height) + var(--content-padding)) var(--content-padding) var(--content-padding) var(--content-padding);
-  min-height: 100vh;
-  background: #fff;
-}
-
-/* Карточки и блоки */
-.card {
-  background: #fff;
-  border-radius: var(--radius);
+  margin-left: 250px;
+  margin-top: 64px;
   padding: 20px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-}
-
-/* Кнопки и поля */
-input, select, button {
-  border-radius: var(--radius);
-  border: 1px solid #ddd;
-  font-size: 16px;
-  padding: 12px;
-  height: 48px;
-  box-sizing: border-box;
-}
-
-button {
-  background: #000;
-  color: #fff;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #222;
-}
-
-/* Таблицы и результаты */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-table th, table td {
-  border: 1px solid #ddd;
-  padding: 8px;
+  flex: 1;
   text-align: center;
 }
 
-/* Убираем полукруглый угол */
-.corner-cut {
-  display: none;
+h1 {
+  margin-bottom: 20px;
+  text-align: center;
 }
 
-/* Адаптив */
-@media(max-width: 900px){
-  nav {
-    width: 100%;
-    height: auto;
-    position: relative;
-    padding-top: 0;
-    display: flex;
-    justify-content: center;
-  }
+/* Калькулятор в одну строку по центру */
+.calc-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 25px;
+}
 
-  main {
-    margin-left: 0;
-    padding-top: calc(var(--topbar-height) + var(--content-padding));
-  }
+.calc-row label {
+  font-size: 14px;
+}
 
-  .form-row {
-    flex-direction: column;
-    gap: 12px;
-  }
+.calc-row input, .calc-row button {
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+.calc-row button {
+  background-color: #000;
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  min-width: 140px;
+  border-radius: var(--radius);
+}
+
+.calc-row button:hover {
+  background-color: #222;
+}
+
+/* Таблица */
+#resultsTable {
+  margin: 0 auto;
+  border-collapse: collapse;
+  border-radius: var(--radius);
+  overflow: hidden;
+  min-width: 400px; /* немного шире */
+}
+
+#resultsTable th, #resultsTable td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+#resultsTable th {
+  background-color: #f0f0f0;
+  font-weight: 600;
 }
