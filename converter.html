@@ -8,27 +8,31 @@
   <style>
     :root {
       --radius: 12px;
-      --card-w: 1000px;
+      --input-height: 48px;
     }
+
     main {
       padding: 32px;
       display: flex;
       justify-content: center;
     }
+
     .card {
       width: 100%;
-      max-width: var(--card-w);
+      max-width: 1000px;
       background: #fff;
       border-radius: var(--radius);
       box-shadow: 0 6px 18px rgba(0,0,0,0.06);
       padding: 22px;
       box-sizing: border-box;
     }
+
     h1 {
       margin: 0 0 18px 0;
       text-align: center;
       font-size: 22px;
     }
+
     .form-row {
       display: flex;
       justify-content: center;
@@ -36,23 +40,29 @@
       gap: 12px;
       flex-wrap: wrap;
     }
+
     input[type="number"],
-    input[type="text"] {
-      padding: 12px;
+    input[list] {
+      height: var(--input-height);
+      padding: 0 12px;
       border-radius: var(--radius);
       border: 1px solid #ddd;
       font-size: 16px;
       box-sizing: border-box;
     }
+
     .amount {
       width: 200px;
     }
+
     .currency-input {
       width: 250px;
       text-transform: uppercase;
     }
+
     button {
-      padding: 12px 40px;
+      height: var(--input-height);
+      padding: 0 32px;
       background: #000;
       color: #fff;
       border: none;
@@ -61,22 +71,26 @@
       font-size: 16px;
       white-space: nowrap;
     }
+
     .result {
       margin-top: 18px;
       text-align: center;
       font-size: 16px;
     }
+
     .meta {
       margin-top: 8px;
       color: #666;
       text-align: center;
       font-size: 13px;
     }
+
     .error {
       color: #b00020;
       text-align: center;
       margin-top: 8px;
     }
+
     @media(max-width: 800px){
       .form-row { flex-direction: column; }
       input, button { width: 100%; }
