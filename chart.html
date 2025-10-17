@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>График криптовалют</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
+      Торговать криптовалютами на BINANCE
+    </a>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="index.html">Калькулятор</a></li>
+      <li><a href="crypto-index.html">Индекс Топ 500 криптовалют</a></li>
+      <li><a href="minipc.html">Мини ПК для трейдинга</a></li>
+      <li><a href="converter.html">Конвертер криптовалют</a></li>
+      <li><a href="elon.html">Илон Маск Twitter/X</a></li>
+      <li><a href="qr.html">Генератор QR-кодов для крипто-адресов</a></li>
+      <li><a href="chart.html">График Bitcoin (BTC)</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1>График Биткоина и других криптовалют</h1>
+
+    <div class="calc-row">
+      <label for="symbolSelect">Выберите криптовалюту:</label>
+      <select id="symbolSelect" style="padding:10px; border-radius:var(--radius); border:1px solid #ccc; font-size:15px; min-width:280px;">
+        <option value="BINANCE:BTCUSDT">Bitcoin (BTC)</option>
+        <option value="BINANCE:ETHUSDT">Ethereum (ETH)</option>
+        <option value="BINANCE:BNBUSDT">BNB</option>
+        <option value="BINANCE:XRPUSDT">XRP</option>
+        <option value="BINANCE:SOLUSDT">Solana (SOL)</option>
+        <option value="BINANCE:DOGEUSDT">Dogecoin (DOGE)</option>
+        <option value="BINANCE:ADAUSDT">Cardano (ADA)</option>
+        <option value="BINANCE:TRXUSDT">TRON (TRX)</option>
+        <option value="BINANCE:DOTUSDT">Polkadot (DOT)</option>
+        <option value="BINANCE:MATICUSDT">Polygon (MATIC)</option>
+        <option value="BINANCE:SHIBUSDT">Shiba Inu (SHIB)</option>
+        <option value="BINANCE:AVAXUSDT">Avalanche (AVAX)</option>
+        <option value="BINANCE:LINKUSDT">Chainlink (LINK)</option>
+        <option value="BINANCE:LTCUSDT">Litecoin (LTC)</option>
+        <option value="BINANCE:ATOMUSDT">Cosmos (ATOM)</option>
+        <option value="BINANCE:XLMUSDT">Stellar (XLM)</option>
+        <option value="BINANCE:NEARUSDT">Near Protocol (NEAR)</option>
+        <option value="BINANCE:APTUSDT">Aptos (APT)</option>
+        <option value="BINANCE:OPUSDT">Optimism (OP)</option>
+        <option value="BINANCE:ARBUSDT">Arbitrum (ARB)</option>
+      </select>
+    </div>
+
+    <!-- Контейнер для TradingView -->
+    <div id="tv_chart_container" style="height:900px; margin-top:20px;"></div>
+
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script>
+      let widget;
+
+      function loadChart(symbol) {
+        if (widget) {
+          widget.remove();
+        }
+        widget = new TradingView.widget({
+          container_id: "tv_chart_container",
+          autosize: true,
+          symbol: symbol,
+          interval: "60",
+          timezone: "Europe/Moscow",
+          theme: "light",
+          style: "1",
+          locale: "ru",
+          toolbar_bg: "#f1f3f6",
+          enable_publishing: false,
+          hide_legend: false,
+          allow_symbol_change: false,
+          studies: ["MACD@tv-basicstudies", "RSI@tv-basicstudies"],
+        });
+      }
+
+      document.getElementById('symbolSelect').addEventListener('change', function() {
+        loadChart(this.value);
+      });
+
+      // Загружаем Bitcoin по умолчанию
+      loadChart("BINANCE:BTCUSDT");
+    </script>
+  </main>
+</body>
+</html>
