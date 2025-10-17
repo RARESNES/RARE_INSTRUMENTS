@@ -56,7 +56,7 @@
     }
 
     .currency-input {
-      width: 250px;
+      width: 200px;
       text-transform: uppercase;
     }
 
@@ -164,19 +164,25 @@ async function fetchWithCache(url){
   return data;
 }
 
+// Загружаем Топ-500 криптовалют
 async function loadList(){
   try {
     const url1 = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1';
     const url2 = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=2';
-    const [p1,p2] = await Promise.all([fetchWithCache(url1), fetchWithCache(url2)]);
-    const list = [...p1,...p2];
+    const [page1, page2] = await Promise.all([fetchWithCache(url1), fetchWithCache(url2)]);
+    const list = [...page1, ...page2];
 
-    list.forEach(c=>{
+    const added = new Set();
+
+    list.forEach(c => {
       const sym = c.symbol.toUpperCase();
-      symbolToId[sym] = c.id;
-      const opt = document.createElement('option');
-      opt.value = sym;
-      listEl.appendChild(opt);
+      if (!added.has(sym)) {
+        added.add(sym);
+        symbolToId[sym] = c.id;
+        const opt = document.createElement('option');
+        opt.value = sym;
+        listEl.appendChild(opt);
+      }
     });
 
     fiatList.forEach(f=>{
@@ -187,10 +193,10 @@ async function loadList(){
     });
 
     fromInput.value = 'BTC';
-    toInput.value = 'USD';
-  } catch(e){
-    errorEl.textContent = 'Ошибка загрузки списка валют.';
+    toInput.value = 'USDT';
+  } catch (e) {
     console.error(e);
+    errorEl.textContent = 'Ошибка загрузки списка криптовалют.';
   }
 }
 
