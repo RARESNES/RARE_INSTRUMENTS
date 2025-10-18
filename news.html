@@ -1,57 +1,23 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Крипто Новости</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Крипто новости (RSS агрегатор)</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    main {
-      margin-left: 250px;
-      margin-top: 64px;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .news-list {
-      max-width: 800px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    .news-item {
-      background: #fff;
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      text-align: left;
-    }
-    .news-item h3 {
-      margin-bottom: 8px;
-      font-size: 18px;
-    }
-    .news-item a {
-      text-decoration: none;
-      color: #007bff;
-    }
-    .news-item a:hover {
-      text-decoration: underline;
-    }
-    .loading {
-      text-align: center;
-      font-size: 18px;
-      padding: 30px;
-    }
-    select {
-      display: block;
-      margin: 0 auto 20px;
-      padding: 8px;
-      font-size: 16px;
-      border-radius: 8px;
-    }
+    main { margin-left: 250px; margin-top: 64px; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 18px; }
+    .news-list { max-width: 980px; margin: 0 auto; display:flex; flex-direction:column; gap:14px; }
+    .news-item { background:#fff; border-radius:10px; padding:12px; box-shadow:0 2px 6px rgba(0,0,0,.08); }
+    .news-item h3 { margin:0 0 6px 0; font-size:18px; }
+    .news-item a { color:#007bff; text-decoration:none; }
+    .news-item a:hover { text-decoration:underline; }
+    .meta { font-size:13px; color:#666; margin-bottom:6px; }
+    .summary { color:#333; font-size:14px; }
+    .loading { text-align:center; padding:30px; color:#444; }
+    .controls { text-align:center; margin-bottom:12px; }
+    .small { font-size:13px; color:#666; }
   </style>
 </head>
 <body>
@@ -59,15 +25,12 @@
   <div id="sidebar"></div>
 
   <main>
-    <h1>📰 Крипто Новости</h1>
+    <h1>📰 Аггрегатор крипто‑новостей (RSS)</h1>
 
-    <select id="coinSelect">
-      <option value="bitcoin">Bitcoin</option>
-      <option value="ethereum">Ethereum</option>
-      <option value="solana">Solana</option>
-      <option value="xrp">XRP</option>
-      <option value="cardano">Cardano</option>
-    </select>
+    <div class="controls">
+      <button id="refreshBtn">Обновить</button>
+      <span class="small"> | Источники: CoinDesk, CoinTelegraph, Decrypt, CryptoSlate, TheBlock и др.</span>
+    </div>
 
     <div id="news-container" class="news-list">
       <div class="loading">Загрузка новостей...</div>
@@ -75,60 +38,172 @@
   </main>
 
   <script>
-    // Подгружаем header и sidebar
-    fetch('header.html')
-      .then(res => res.text())
-      .then(data => document.getElementById('header').innerHTML = data);
+  // Подгружаем header и sidebar (как у остальных страниц)
+  fetch('header.html').then(r => r.text()).then(t => document.getElementById('header').innerHTML = t);
+  fetch('sidebar.html').then(r => r.text()).then(t => document.getElementById('sidebar').innerHTML = t);
 
-    fetch('sidebar.html')
-      .then(res => res.text())
-      .then(data => document.getElementById('sidebar').innerHTML = data);
+  const newsContainer = document.getElementById('news-container');
+  const refreshBtn = document.getElementById('refreshBtn');
 
-    const newsContainer = document.getElementById('news-container');
-    const coinSelect = document.getElementById('coinSelect');
+  // Список RSS-лент (можно добавлять/менять)
+  const feeds = [
+    'https://www.coindesk.com/arc/outboundfeeds/rss/',               // CoinDesk
+    'https://cointelegraph.com/rss',                                // CoinTelegraph
+    'https://decrypt.co/feed',                                      // Decrypt
+    'https://cryptoslate.com/feed/',                                // CryptoSlate
+    'https://www.theblock.co/feed',                                 // The Block
+    'https://www.coingecko.com/en/rss',                             // CoinGecko (новости)
+    'https://news.bitcoin.com/feed/'                                // Bitcoin.com
+  ];
 
-    function loadNews(coin) {
-      newsContainer.innerHTML = `<div class="loading">Загрузка новостей...</div>`;
-      const apiUrl = 'https://api.coinstats.app/public/v1/news';
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+  // Используем allorigins raw endpoint — возвращает сырой текст (и добавляет CORS)
+  function proxyUrl(url) {
+    return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+  }
 
-      fetch(proxyUrl)
-        .then(res => res.json())
-        .then(data => {
-          const json = JSON.parse(data.contents);
-          if (!json.news || json.news.length === 0) {
-            newsContainer.innerHTML = `<div class="loading">Новостей не найдено 😔</div>`;
-            return;
-          }
+  // Парсим одну RSS-ленту -> возвращает массив {title, link, pubDate (Date), source, summary}
+  async function fetchAndParse(feedUrl) {
+    try {
+      const res = await fetch(proxyUrl(feedUrl));
+      if (!res.ok) throw new Error('fetch failed ' + res.status);
+      const text = await res.text();
+      const doc = new DOMParser().parseFromString(text, 'application/xml');
 
-          const filtered = json.news.filter(item =>
-            item.title.toLowerCase().includes(coin.toLowerCase()) ||
-            (item.description && item.description.toLowerCase().includes(coin.toLowerCase()))
-          );
+      // Попробуем получить название источника
+      let source = '';
+      const chTitle = doc.querySelector('channel > title');
+      if (chTitle) source = chTitle.textContent.trim();
+      if (!source) {
+        const feedTitle = doc.querySelector('feed > title');
+        if (feedTitle) source = feedTitle.textContent.trim();
+      }
+      // Выберем элементы item или entry
+      const items = Array.from(doc.querySelectorAll('item, entry')).slice(0, 50);
+      const parsed = items.map(it => {
+        // title
+        const tEl = it.querySelector('title');
+        const title = tEl ? tEl.textContent.trim() : '(без заголовка)';
 
-          if (filtered.length === 0) {
-            newsContainer.innerHTML = `<div class="loading">Новостей не найдено 😔</div>`;
-            return;
-          }
+        // link
+        let link = '';
+        const linkEl = it.querySelector('link');
+        if (linkEl) {
+          // в Atom <link href="...">
+          link = linkEl.getAttribute('href') || linkEl.textContent || '';
+        }
+        // возможно есть <enclosure> или <guid>
+        if (!link) {
+          const guid = it.querySelector('guid');
+          if (guid) link = guid.textContent || '';
+        }
 
-          newsContainer.innerHTML = filtered.slice(0, 15).map(item => `
-            <div class="news-item">
-              <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
-              <p>${item.source} | ${new Date(item.feedDate).toLocaleString('ru-RU')}</p>
-            </div>
-          `).join('');
-        })
-        .catch(err => {
-          console.error(err);
-          newsContainer.innerHTML = `<div class="loading">Не удалось загрузить новости 😔</div>`;
-        });
+        // pubDate / updated / published
+        let dateStr = '';
+        const dateEl = it.querySelector('pubDate, published, updated, dc\\:date');
+        if (dateEl) dateStr = dateEl.textContent;
+        const pubDate = dateStr ? new Date(dateStr) : null;
+
+        // description / summary
+        const descEl = it.querySelector('description, summary, content');
+        const summary = descEl ? descEl.textContent.trim() : '';
+
+        return {
+          title,
+          link: link || '',
+          pubDate,
+          source: source || feedUrl,
+          summary
+        };
+      });
+      return parsed;
+    } catch (e) {
+      console.warn('feed error', feedUrl, e);
+      return []; // при ошибке возвращаем пустой массив
     }
+  }
 
-    // При изменении монеты — загружаем новости заново
-    coinSelect.addEventListener('change', () => loadNews(coinSelect.value));
+  // Собираем сразу из всех фидов
+  async function loadAllNews() {
+    newsContainer.innerHTML = '<div class="loading">Загрузка новостей...</div>';
 
-    // Загружаем новости по умолчанию
-    loadNews(coinSelect.value);
+    try {
+      const promises = feeds.map(f => fetchAndParse(f));
+      const arrays = await Promise.all(promises);
+      // flatten
+      let all = arrays.flat();
+
+      // Оставляем только элементы с ссылкой и заголовком
+      all = all.filter(it => it.title && it.link);
+
+      // Убираем дубликаты по ссылке
+      const unique = [];
+      const urls = new Set();
+      for (const it of all) {
+        if (!urls.has(it.link)) {
+          urls.add(it.link);
+          unique.push(it);
+        }
+      }
+
+      // Если нет дат — поставим очень старую дату, потом отсортируем по наличию даты и по убыванию
+      unique.forEach(it => {
+        if (!it.pubDate || isNaN(it.pubDate)) {
+          it.pubDate = new Date(0);
+        }
+      });
+
+      // Сортируем по дате (последние первыми)
+      unique.sort((a, b) => b.pubDate - a.pubDate);
+
+      if (unique.length === 0) {
+        newsContainer.innerHTML = '<div class="loading">Новостей не найдено 😔</div>';
+        return;
+      }
+
+      // Рендерим top N
+      const top = unique.slice(0, 30);
+      newsContainer.innerHTML = top.map(it => {
+        const dateText = (it.pubDate && it.pubDate.getTime() > 0)
+          ? it.pubDate.toLocaleString('ru-RU')
+          : '';
+        const summaryShort = it.summary ? ('<div class="summary">' + escapeHtml(truncate(stripTags(it.summary), 280)) + '</div>') : '';
+        return `
+          <div class="news-item">
+            <div class="meta">${escapeHtml(it.source)} ${dateText ? '| ' + dateText : ''}</div>
+            <h3><a href="${escapeHtmlAttr(it.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title)}</a></h3>
+            ${summaryShort}
+          </div>
+        `;
+      }).join('');
+
+    } catch (e) {
+      console.error(e);
+      newsContainer.innerHTML = '<div class="loading">Не удалось загрузить новости 😔</div>';
+    }
+  }
+
+  // Утилиты
+  function stripTags(html) {
+    return html.replace(/<\/?[^>]+(>|$)/g, " ");
+  }
+  function truncate(str, n) {
+    return str.length > n ? str.slice(0, n-1) + '…' : str;
+  }
+  function escapeHtml(s) {
+    return (s||'').replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])});
+  }
+  function escapeHtmlAttr(s) {
+    return escapeHtml(s).replace(/"/g, '&quot;');
+  }
+
+  // Кнопка обновить
+  refreshBtn.addEventListener('click', () => {
+    loadAllNews();
+  });
+
+  // Грузим при старте
+  loadAllNews();
+
   </script>
 </body>
 </html>
