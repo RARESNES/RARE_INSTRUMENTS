@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Калькуляторы TP/SL для Спота и Фьючерсов</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор TP/SL для Спота и Фьючерсов</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -97,7 +98,10 @@
   </style>
 </head>
 <body>
-
+  <div id="header"></div>
+  <div id="sidebar"></div>
+  
+  <main>
   <!-- 📌 СПОТ -->
   <h2>Калькулятор для СПОТА</h2>
   <div class="calc-box">
@@ -142,6 +146,8 @@
     <button onclick="calcFuturesSL()">Рассчитать Стоп-Лосс</button>
     <div class="result" id="futuresSLResult"></div>
   </div>
+
+  </main>
 
   <script>
     // 📌 СПОТ - Тейк
@@ -216,5 +222,27 @@
         `Цена стоп-лосса (${positionType === 'long' ? 'Лонг' : 'Шорт'}): ${slPrice.toFixed(6)} (движение цены ≈ ${priceChange.toFixed(4)}%)`;
     }
   </script>
+
+  <script>
+    // Подгружаем header и sidebar
+    fetch('header.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('header').innerHTML = data);
+
+    fetch('sidebar.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('sidebar').innerHTML = data);
+  </script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EEZSLT2L6C');
+</script>
+
 </body>
 </html>
