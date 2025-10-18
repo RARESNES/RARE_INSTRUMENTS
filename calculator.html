@@ -9,6 +9,100 @@
 <body>
   <div id="header"></div>
   <div id="sidebar"></div>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h2 {
+      margin-top: 30px;
+      text-align: center;
+    }
+    .calc-box {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-top: 15px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px;
+      width: 100%;
+      font-size: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .result {
+      margin-top: 10px;
+      background: #f0f0f0;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .slider-container {
+      margin-top: 10px;
+    }
+    .slider-value {
+      font-weight: bold;
+    }
+    .position-switch {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    .position-btn {
+      flex: 1;
+      padding: 10px;
+      margin: 0 5px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      font-size: 15px;
+      transition: background 0.2s;
+    }
+    .long-btn.active {
+      background: #28a745;
+      color: white;
+    }
+    .short-btn.active {
+      background: #dc3545;
+      color: white;
+    }
+    .long-btn {
+      background: #e6f4ea;
+      color: #28a745;
+    }
+    .short-btn {
+      background: #fbeaea;
+      color: #dc3545;
+    }
+  </style>
+
   
   <main>
   <!-- 📌 СПОТ -->
@@ -56,6 +150,8 @@
     <div class="result" id="futuresSLResult"></div>
   </div>
   </main>
+
+
   <script>
     // 📌 СПОТ - Тейк
     function calcSpotTP() {
