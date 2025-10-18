@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Конвертер криптовалют</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header"></div>
+  <div id="sidebar"></div>
   <style>
     :root {
       --radius: 12px;
@@ -78,28 +82,8 @@
   </style>
 </head>
 <body>
-  <header>
-    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
-      Торговать криптовалютами на BINANCE
-    </a>
-  </header>
-
-  <nav>
-    <ul>
-      <li><a href="index.html">Калькулятор</a></li>
-      <li><a href="crypto-index.html">Индекс Топ 500 криптовалют</a></li>
-      <li><a href="minipc.html">Мини ПК для трейдинга</a></li>
-      <li><a href="converter.html">Конвертер криптовалют</a></li>
-      <li><a href="elon.html">Илон Маск Twitter/X</a></li>
-      <li><a href="qr.html">Генератор QR-кодов для крипто-адресов</a></li>
-      <li><a href="chart.html">График Bitcoin (BTC)</a></li>
-      <li><a href="trading.html">Ключ успешного трейдинга</a></li>
-      <li><a href="app.html">Полезные расширения и программы</a></li>
-    </ul>
-  </nav>
-
   <div class="corner-cut" style="display:none;"></div>
-
+  
   <main>
     <div class="card">
       <h1>Конвертер криптовалют</h1>
@@ -115,7 +99,7 @@
       <div class="result" id="result">Результат: —</div>
       <div class="meta" id="meta">Курс: — · Обновлено: —</div>
       <div class="error" id="error" role="alert" aria-live="assertive"></div>
-    </div>
+    </div>  
   </main>
 
 <script>
@@ -247,5 +231,27 @@ btn.addEventListener('click',e=>{e.preventDefault();doConvert();});
 // Загрузка списка монет при запуске
 loadCoinList();
 </script>
+
+  <script>
+    // Подгружаем header и sidebar
+    fetch('header.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('header').innerHTML = data);
+
+    fetch('sidebar.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('sidebar').innerHTML = data);
+  </script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EEZSLT2L6C');
+</script>
+
 </body>
 </html>
