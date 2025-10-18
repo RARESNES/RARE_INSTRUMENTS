@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Крипто Новости</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Немного стилей для блока новостей */
+    .news-container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    .news-item {
+      border-bottom: 1px solid #ddd;
+      padding: 12px 0;
+    }
+
+    .news-item:last-child {
+      border-bottom: none;
+    }
+
+    .news-item h3 {
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .news-item a {
+      color: #000;
+      text-decoration: none;
+    }
+
+    .news-item a:hover {
+      text-decoration: underline;
+    }
+
+    .news-item .date {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .coin-select {
+      margin-bottom: 20px;
+      padding: 8px;
+      font-size: 16px;
+      border-radius: var(--radius);
+      border: 1px solid #ccc;
+    }
+
+    .loading {
+      text-align: center;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="header"></div>
+  <div id="sidebar"></div>
+
+  <main>
+    <h1>📰 Крипто Новости</h1>
+    <select id="coinSelect" class="coin-select">
+      <option value="bitcoin">Bitcoin (BTC)</option>
+      <option value="ethereum">Ethereum (ETH)</option>
+      <option value="bnb">BNB</option>
+      <option value="solana">Solana (SOL)</option>
+      <option value="xrp">XRP</option>
+      <option value="cardano">Cardano (ADA)</option>
+      <option value="dogecoin">Dogecoin (DOGE)</option>
+      <option value="toncoin">Toncoin (TON)</option>
+      <option value="avalanche-2">Avalanche (AVAX)</option>
+      <option value="polkadot">Polkadot (DOT)</option>
+    </select>
+
+    <div id="newsContainer" class="news-container"></div>
+    <div id="loading" class="loading" style="display:none;">Загрузка новостей...</div>
+    <div id="error" class="error" style="display:none;">Не удалось загрузить новости 😔</div>
+  </main>
+
+  <script>
+    // Подгружаем header и sidebar
+    fetch('header.html').then(r => r.text()).then(d => document.getElementById('header').innerHTML = d);
+    fetch('sidebar.html').then(r => r.text()).then(d => document.getElementById('sidebar').innerHTML = d);
+
+    const select = document.getElementById('coinSelect');
+    const container = document.getElementById('newsContainer');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+
+    async function loadNews(coin) {
+      container.innerHTML = '';
+      error.style.display = 'none';
+      loading.style.display = 'block';
+
+      try {
+        const res = await fetch(`https://api.coinstats.app/public/v1/news?coin=${coin}`);
+        if (!res.ok) throw new Error('Network error');
+        const data = await res.json();
+
+        loading.style.display = 'none';
+
+        if (data.news.length === 0) {
+          container.innerHTML = `<p>Новостей по этой монете пока нет 🧐</p>`;
+          return;
+        }
+
+        data.news.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'news-item';
+          div.innerHTML = `
+            <span class="date">${new Date(item.feedDate).toLocaleDateString('ru-RU')}</span>
+            <h3><a href="${item.link}" target="_blank" rel="noopener">${item.title}</a></h3>
+            <p>${item.description || ''}</p>
+          `;
+          container.appendChild(div);
+        });
+
+      } catch (e) {
+        loading.style.display = 'none';
+        error.style.display = 'block';
+      }
+    }
+
+    // При изменении монеты → подгружаем новости
+    select.addEventListener('change', () => {
+      loadNews(select.value);
+    });
+
+    // Загружаем Bitcoin по умолчанию
+    loadNews(select.value);
+  </script>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-EEZSLT2L6C');
+  </script>
+
+</body>
+</html>
