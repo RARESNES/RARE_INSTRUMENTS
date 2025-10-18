@@ -1,36 +1,134 @@
-function loadNews(coin) {
-  newsContainer.innerHTML = '<div class="loading">Загрузка новостей...</div>';
-  const apiUrl = 'https://api.coinstats.app/public/v1/news';
-  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Крипто Новости</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    main {
+      margin-left: 250px;
+      margin-top: 64px;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .news-list {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .news-item {
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+    .news-item h3 {
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+    .news-item a {
+      text-decoration: none;
+      color: #007bff;
+    }
+    .news-item a:hover {
+      text-decoration: underline;
+    }
+    .loading {
+      text-align: center;
+      font-size: 18px;
+      padding: 30px;
+    }
+    select {
+      display: block;
+      margin: 0 auto 20px;
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="header"></div>
+  <div id="sidebar"></div>
 
-  fetch(proxyUrl)
-    .then(res => res.json())
-    .then(data => {
-      const json = JSON.parse(data.contents);
-      if (!json.news || json.news.length === 0) {
-        newsContainer.innerHTML = '<div class="loading">Новостей не найдено 😔</div>';
-        return;
-      }
+  <main>
+    <h1>📰 Крипто Новости</h1>
 
-      const filtered = json.news.filter(item => 
-        item.title.toLowerCase().includes(coin.toLowerCase()) ||
-        (item.description && item.description.toLowerCase().includes(coin.toLowerCase()))
-      );
+    <select id="coinSelect">
+      <option value="bitcoin">Bitcoin</option>
+      <option value="ethereum">Ethereum</option>
+      <option value="solana">Solana</option>
+      <option value="xrp">XRP</option>
+      <option value="cardano">Cardano</option>
+    </select>
 
-      if (filtered.length === 0) {
-        newsContainer.innerHTML = '<div class="loading">Новостей не найдено 😔</div>';
-        return;
-      }
+    <div id="news-container" class="news-list">
+      <div class="loading">Загрузка новостей...</div>
+    </div>
+  </main>
 
-      newsContainer.innerHTML = filtered.slice(0, 15).map(item => `
-        <div class="news-item">
-          <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
-          <p>${item.source}</p>
-        </div>
-      `).join('');
-    })
-    .catch(err => {
-      console.error(err);
-      newsContainer.innerHTML = '<div class="loading">Не удалось загрузить новости 😔</div>';
-    });
-}
+  <script>
+    // Подгружаем header и sidebar
+    fetch('header.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('header').innerHTML = data);
+
+    fetch('sidebar.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('sidebar').innerHTML = data);
+
+    const newsContainer = document.getElementById('news-container');
+    const coinSelect = document.getElementById('coinSelect');
+
+    function loadNews(coin) {
+      newsContainer.innerHTML = `<div class="loading">Загрузка новостей...</div>`;
+      const apiUrl = 'https://api.coinstats.app/public/v1/news';
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+
+      fetch(proxyUrl)
+        .then(res => res.json())
+        .then(data => {
+          const json = JSON.parse(data.contents);
+          if (!json.news || json.news.length === 0) {
+            newsContainer.innerHTML = `<div class="loading">Новостей не найдено 😔</div>`;
+            return;
+          }
+
+          const filtered = json.news.filter(item =>
+            item.title.toLowerCase().includes(coin.toLowerCase()) ||
+            (item.description && item.description.toLowerCase().includes(coin.toLowerCase()))
+          );
+
+          if (filtered.length === 0) {
+            newsContainer.innerHTML = `<div class="loading">Новостей не найдено 😔</div>`;
+            return;
+          }
+
+          newsContainer.innerHTML = filtered.slice(0, 15).map(item => `
+            <div class="news-item">
+              <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
+              <p>${item.source} | ${new Date(item.feedDate).toLocaleString('ru-RU')}</p>
+            </div>
+          `).join('');
+        })
+        .catch(err => {
+          console.error(err);
+          newsContainer.innerHTML = `<div class="loading">Не удалось загрузить новости 😔</div>`;
+        });
+    }
+
+    // При изменении монеты — загружаем новости заново
+    coinSelect.addEventListener('change', () => loadNews(coinSelect.value));
+
+    // Загружаем новости по умолчанию
+    loadNews(coinSelect.value);
+  </script>
+</body>
+</html>
