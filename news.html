@@ -6,150 +6,119 @@
   <title>Крипто Новости</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Немного стилей для блока новостей */
-    .news-container {
+    main {
+      margin-left: 250px;
+      margin-top: 64px;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .news-list {
       max-width: 800px;
       margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .news-item {
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       text-align: left;
     }
-
-    .news-item {
-      border-bottom: 1px solid #ddd;
-      padding: 12px 0;
-    }
-
-    .news-item:last-child {
-      border-bottom: none;
-    }
-
     .news-item h3 {
+      margin-bottom: 8px;
       font-size: 18px;
-      margin-bottom: 5px;
     }
-
     .news-item a {
-      color: #000;
       text-decoration: none;
+      color: #007bff;
     }
-
     .news-item a:hover {
       text-decoration: underline;
     }
-
-    .news-item .date {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 6px;
-      display: block;
-    }
-
-    .coin-select {
-      margin-bottom: 20px;
-      padding: 8px;
-      font-size: 16px;
-      border-radius: var(--radius);
-      border: 1px solid #ccc;
-    }
-
     .loading {
       text-align: center;
-      font-size: 16px;
-      margin-top: 20px;
+      font-size: 18px;
+      padding: 30px;
     }
-
-    .error {
-      color: red;
-      text-align: center;
-      margin-top: 20px;
+    select {
+      display: block;
+      margin: 0 auto 20px;
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
-
   <div id="header"></div>
   <div id="sidebar"></div>
 
   <main>
     <h1>📰 Крипто Новости</h1>
-    <select id="coinSelect" class="coin-select">
-      <option value="bitcoin">Bitcoin (BTC)</option>
-      <option value="ethereum">Ethereum (ETH)</option>
-      <option value="bnb">BNB</option>
-      <option value="solana">Solana (SOL)</option>
+
+    <select id="coinSelect">
+      <option value="bitcoin">Bitcoin</option>
+      <option value="ethereum">Ethereum</option>
+      <option value="solana">Solana</option>
       <option value="xrp">XRP</option>
-      <option value="cardano">Cardano (ADA)</option>
-      <option value="dogecoin">Dogecoin (DOGE)</option>
-      <option value="toncoin">Toncoin (TON)</option>
-      <option value="avalanche-2">Avalanche (AVAX)</option>
-      <option value="polkadot">Polkadot (DOT)</option>
+      <option value="cardano">Cardano</option>
     </select>
 
-    <div id="newsContainer" class="news-container"></div>
-    <div id="loading" class="loading" style="display:none;">Загрузка новостей...</div>
-    <div id="error" class="error" style="display:none;">Не удалось загрузить новости 😔</div>
+    <div id="news-container" class="news-list">
+      <div class="loading">Загрузка новостей...</div>
+    </div>
   </main>
 
   <script>
     // Подгружаем header и sidebar
-    fetch('header.html').then(r => r.text()).then(d => document.getElementById('header').innerHTML = d);
-    fetch('sidebar.html').then(r => r.text()).then(d => document.getElementById('sidebar').innerHTML = d);
+    fetch('header.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('header').innerHTML = data);
 
-    const select = document.getElementById('coinSelect');
-    const container = document.getElementById('newsContainer');
-    const loading = document.getElementById('loading');
-    const error = document.getElementById('error');
+    fetch('sidebar.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('sidebar').innerHTML = data);
 
-    async function loadNews(coin) {
-      container.innerHTML = '';
-      error.style.display = 'none';
-      loading.style.display = 'block';
+    const newsContainer = document.getElementById('news-container');
+    const coinSelect = document.getElementById('coinSelect');
 
-      try {
-        const res = await fetch(`https://api.coinstats.app/public/v1/news?coin=${coin}`);
-        if (!res.ok) throw new Error('Network error');
-        const data = await res.json();
+    function loadNews(coin) {
+      newsContainer.innerHTML = '<div class="loading">Загрузка новостей...</div>';
+      const apiUrl = `https://api.coinstats.app/public/v1/news?coin=${coin}`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
 
-        loading.style.display = 'none';
+      fetch(proxyUrl)
+        .then(res => res.json())
+        .then(data => {
+          const json = JSON.parse(data.contents);
+          if (!json.news || json.news.length === 0) {
+            newsContainer.innerHTML = '<div class="loading">Новостей не найдено 😔</div>';
+            return;
+          }
 
-        if (data.news.length === 0) {
-          container.innerHTML = `<p>Новостей по этой монете пока нет 🧐</p>`;
-          return;
-        }
-
-        data.news.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'news-item';
-          div.innerHTML = `
-            <span class="date">${new Date(item.feedDate).toLocaleDateString('ru-RU')}</span>
-            <h3><a href="${item.link}" target="_blank" rel="noopener">${item.title}</a></h3>
-            <p>${item.description || ''}</p>
-          `;
-          container.appendChild(div);
+          newsContainer.innerHTML = json.news.slice(0, 15).map(item => `
+            <div class="news-item">
+              <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
+              <p>${item.source}</p>
+            </div>
+          `).join('');
+        })
+        .catch(err => {
+          console.error(err);
+          newsContainer.innerHTML = '<div class="loading">Не удалось загрузить новости 😔</div>';
         });
-
-      } catch (e) {
-        loading.style.display = 'none';
-        error.style.display = 'block';
-      }
     }
 
-    // При изменении монеты → подгружаем новости
-    select.addEventListener('change', () => {
-      loadNews(select.value);
-    });
+    // При изменении монеты — загружаем новости заново
+    coinSelect.addEventListener('change', () => loadNews(coinSelect.value));
 
-    // Загружаем Bitcoin по умолчанию
-    loadNews(select.value);
+    // Загружаем новости по умолчанию
+    loadNews(coinSelect.value);
   </script>
-
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-EEZSLT2L6C');
-  </script>
-
 </body>
 </html>
