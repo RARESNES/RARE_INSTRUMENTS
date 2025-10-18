@@ -8,16 +8,54 @@
   <style>
     main { margin-left: 250px; margin-top: 64px; padding: 20px; }
     h1 { text-align: center; margin-bottom: 18px; }
-    .news-list { max-width: 980px; margin: 0 auto; display:flex; flex-direction:column; gap:14px; }
-    .news-item { background:#fff; border-radius:10px; padding:12px; box-shadow:0 2px 6px rgba(0,0,0,.08); }
-    .news-item h3 { margin:0 0 6px 0; font-size:18px; }
-    .news-item a { color:#007bff; text-decoration:none; }
-    .news-item a:hover { text-decoration:underline; }
-    .meta { font-size:13px; color:#666; margin-bottom:6px; }
-    .summary { color:#333; font-size:14px; }
+
+    /* Контролы */
+    .controls {
+      max-width: 980px;
+      margin: 0 auto 16px auto;
+    }
+    .sources {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .refresh-container {
+      text-align: right;
+    }
+    #refreshBtn {
+      background-color: #000;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 500;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #refreshBtn:hover { background-color: #222; }
+
+    /* Новости */
+    .news-list {
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .news-item {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+    .news-item h3 { margin: 0 0 8px 0; font-size: 18px; }
+    .news-item a { color: #007bff; text-decoration: none; }
+    .news-item a:hover { text-decoration: underline; }
+    .meta { font-size: 13px; color: #666; margin-bottom: 6px; }
+    .summary { color: #333; font-size: 17px; line-height: 1.6; }
     .loading { text-align:center; padding:30px; color:#444; }
-    .controls { text-align:center; margin-bottom:12px; }
-    .small { font-size:13px; color:#666; }
   </style>
 </head>
 <body>
@@ -28,8 +66,8 @@
     <h1>📰 Аггрегатор крипто‑новостей (RSS)</h1>
 
     <div class="controls">
-      <button id="refreshBtn">Обновить</button>
-      <span class="small"> | Источники: CoinDesk, CoinTelegraph, Decrypt, CryptoSlate, TheBlock и др.</span>
+      <div class="sources">Источники: CoinDesk, CoinTelegraph, Decrypt, CryptoSlate, TheBlock и др.</div>
+      <div class="refresh-container"><button id="refreshBtn">Обновить</button></div>
     </div>
 
     <div id="news-container" class="news-list">
@@ -38,172 +76,128 @@
   </main>
 
   <script>
-  // Подгружаем header и sidebar (как у остальных страниц)
-  fetch('header.html').then(r => r.text()).then(t => document.getElementById('header').innerHTML = t);
-  fetch('sidebar.html').then(r => r.text()).then(t => document.getElementById('sidebar').innerHTML = t);
+    // Подгружаем header и sidebar
+    fetch('header.html').then(r => r.text()).then(t => document.getElementById('header').innerHTML = t);
+    fetch('sidebar.html').then(r => r.text()).then(t => document.getElementById('sidebar').innerHTML = t);
 
-  const newsContainer = document.getElementById('news-container');
-  const refreshBtn = document.getElementById('refreshBtn');
+    const newsContainer = document.getElementById('news-container');
+    const refreshBtn = document.getElementById('refreshBtn');
 
-  // Список RSS-лент (можно добавлять/менять)
-  const feeds = [
-    'https://www.coindesk.com/arc/outboundfeeds/rss/',               // CoinDesk
-    'https://cointelegraph.com/rss',                                // CoinTelegraph
-    'https://decrypt.co/feed',                                      // Decrypt
-    'https://cryptoslate.com/feed/',                                // CryptoSlate
-    'https://www.theblock.co/feed',                                 // The Block
-    'https://www.coingecko.com/en/rss',                             // CoinGecko (новости)
-    'https://news.bitcoin.com/feed/'                                // Bitcoin.com
-  ];
+    const feeds = [
+      'https://www.coindesk.com/arc/outboundfeeds/rss/',
+      'https://cointelegraph.com/rss',
+      'https://decrypt.co/feed',
+      'https://cryptoslate.com/feed/',
+      'https://www.theblock.co/feed',
+      'https://www.coingecko.com/en/rss',
+      'https://news.bitcoin.com/feed/'
+    ];
 
-  // Используем allorigins raw endpoint — возвращает сырой текст (и добавляет CORS)
-  function proxyUrl(url) {
-    return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-  }
+    function proxyUrl(url) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url); }
 
-  // Парсим одну RSS-ленту -> возвращает массив {title, link, pubDate (Date), source, summary}
-  async function fetchAndParse(feedUrl) {
-    try {
-      const res = await fetch(proxyUrl(feedUrl));
-      if (!res.ok) throw new Error('fetch failed ' + res.status);
-      const text = await res.text();
-      const doc = new DOMParser().parseFromString(text, 'application/xml');
+    async function fetchAndParse(feedUrl) {
+      try {
+        const res = await fetch(proxyUrl(feedUrl));
+        if (!res.ok) throw new Error('fetch failed ' + res.status);
+        const text = await res.text();
+        const doc = new DOMParser().parseFromString(text, 'application/xml');
 
-      // Попробуем получить название источника
-      let source = '';
-      const chTitle = doc.querySelector('channel > title');
-      if (chTitle) source = chTitle.textContent.trim();
-      if (!source) {
-        const feedTitle = doc.querySelector('feed > title');
-        if (feedTitle) source = feedTitle.textContent.trim();
+        let source = '';
+        const chTitle = doc.querySelector('channel > title') || doc.querySelector('feed > title');
+        if (chTitle) source = chTitle.textContent.trim();
+
+        const items = Array.from(doc.querySelectorAll('item, entry')).slice(0, 50);
+        return items.map(it => {
+          const tEl = it.querySelector('title');
+          const title = tEl ? tEl.textContent.trim() : '(без заголовка)';
+
+          let link = '';
+          const linkEl = it.querySelector('link');
+          if (linkEl) link = linkEl.getAttribute('href') || linkEl.textContent || '';
+          if (!link) {
+            const guid = it.querySelector('guid');
+            if (guid) link = guid.textContent || '';
+          }
+
+          const dateEl = it.querySelector('pubDate, published, updated, dc\\:date');
+          const pubDate = dateEl ? new Date(dateEl.textContent) : null;
+
+          const descEl = it.querySelector('description, summary, content');
+          const summary = descEl ? descEl.textContent.trim() : '';
+
+          return { title, link, pubDate, source: source || feedUrl, summary };
+        });
+      } catch (e) {
+        console.warn('feed error', feedUrl, e);
+        return [];
       }
-      // Выберем элементы item или entry
-      const items = Array.from(doc.querySelectorAll('item, entry')).slice(0, 50);
-      const parsed = items.map(it => {
-        // title
-        const tEl = it.querySelector('title');
-        const title = tEl ? tEl.textContent.trim() : '(без заголовка)';
-
-        // link
-        let link = '';
-        const linkEl = it.querySelector('link');
-        if (linkEl) {
-          // в Atom <link href="...">
-          link = linkEl.getAttribute('href') || linkEl.textContent || '';
-        }
-        // возможно есть <enclosure> или <guid>
-        if (!link) {
-          const guid = it.querySelector('guid');
-          if (guid) link = guid.textContent || '';
-        }
-
-        // pubDate / updated / published
-        let dateStr = '';
-        const dateEl = it.querySelector('pubDate, published, updated, dc\\:date');
-        if (dateEl) dateStr = dateEl.textContent;
-        const pubDate = dateStr ? new Date(dateStr) : null;
-
-        // description / summary
-        const descEl = it.querySelector('description, summary, content');
-        const summary = descEl ? descEl.textContent.trim() : '';
-
-        return {
-          title,
-          link: link || '',
-          pubDate,
-          source: source || feedUrl,
-          summary
-        };
-      });
-      return parsed;
-    } catch (e) {
-      console.warn('feed error', feedUrl, e);
-      return []; // при ошибке возвращаем пустой массив
     }
-  }
 
-  // Собираем сразу из всех фидов
-  async function loadAllNews() {
-    newsContainer.innerHTML = '<div class="loading">Загрузка новостей...</div>';
+    // --- Для бесконечной прокрутки ---
+    let allNews = [];
+    let newsIndex = 0;
+    const NEWS_BATCH = 10;
 
-    try {
-      const promises = feeds.map(f => fetchAndParse(f));
-      const arrays = await Promise.all(promises);
-      // flatten
-      let all = arrays.flat();
-
-      // Оставляем только элементы с ссылкой и заголовком
-      all = all.filter(it => it.title && it.link);
-
-      // Убираем дубликаты по ссылке
-      const unique = [];
-      const urls = new Set();
-      for (const it of all) {
-        if (!urls.has(it.link)) {
-          urls.add(it.link);
-          unique.push(it);
-        }
-      }
-
-      // Если нет дат — поставим очень старую дату, потом отсортируем по наличию даты и по убыванию
-      unique.forEach(it => {
-        if (!it.pubDate || isNaN(it.pubDate)) {
-          it.pubDate = new Date(0);
-        }
-      });
-
-      // Сортируем по дате (последние первыми)
-      unique.sort((a, b) => b.pubDate - a.pubDate);
-
-      if (unique.length === 0) {
-        newsContainer.innerHTML = '<div class="loading">Новостей не найдено 😔</div>';
-        return;
-      }
-
-      // Рендерим top N
-      const top = unique.slice(0, 30);
-      newsContainer.innerHTML = top.map(it => {
-        const dateText = (it.pubDate && it.pubDate.getTime() > 0)
-          ? it.pubDate.toLocaleString('ru-RU')
-          : '';
-        const summaryShort = it.summary ? ('<div class="summary">' + escapeHtml(truncate(stripTags(it.summary), 280)) + '</div>') : '';
-        return `
-          <div class="news-item">
-            <div class="meta">${escapeHtml(it.source)} ${dateText ? '| ' + dateText : ''}</div>
-            <h3><a href="${escapeHtmlAttr(it.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title)}</a></h3>
-            ${summaryShort}
-          </div>
-        `;
+    function renderNewsBatch() {
+      if(newsIndex >= allNews.length) return;
+      const batch = allNews.slice(newsIndex, newsIndex + NEWS_BATCH);
+      newsIndex += NEWS_BATCH;
+      newsContainer.innerHTML += batch.map(it=>{
+        const dateText = it.pubDate && it.pubDate.getTime()>0 ? '| ' + it.pubDate.toLocaleString('ru-RU') : '';
+        const summaryShort = it.summary ? '<div class="summary">'+escapeHtml(truncate(stripTags(it.summary),280))+'</div>' : '';
+        return `<div class="news-item">
+          <div class="meta">${escapeHtml(it.source)} ${dateText}</div>
+          <h3><a href="${escapeHtmlAttr(it.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title)}</a></h3>
+          ${summaryShort}
+        </div>`;
       }).join('');
-
-    } catch (e) {
-      console.error(e);
-      newsContainer.innerHTML = '<div class="loading">Не удалось загрузить новости 😔</div>';
     }
-  }
 
-  // Утилиты
-  function stripTags(html) {
-    return html.replace(/<\/?[^>]+(>|$)/g, " ");
-  }
-  function truncate(str, n) {
-    return str.length > n ? str.slice(0, n-1) + '…' : str;
-  }
-  function escapeHtml(s) {
-    return (s||'').replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])});
-  }
-  function escapeHtmlAttr(s) {
-    return escapeHtml(s).replace(/"/g, '&quot;');
-  }
+    async function loadAllNews() {
+      newsContainer.innerHTML = '<div class="loading">Загрузка новостей...</div>';
+      try {
+        const arrays = await Promise.all(feeds.map(f => fetchAndParse(f)));
+        let all = arrays.flat();
+        all = all.filter(it => it.title && it.link);
 
-  // Кнопка обновить
-  refreshBtn.addEventListener('click', () => {
+        const unique = [];
+        const urls = new Set();
+        for (const it of all) {
+          if (!urls.has(it.link)) {
+            urls.add(it.link);
+            unique.push(it);
+          }
+        }
+
+        unique.forEach(it => { if (!it.pubDate || isNaN(it.pubDate)) it.pubDate = new Date(0); });
+        unique.sort((a,b)=>b.pubDate-a.pubDate);
+
+        if(unique.length===0){newsContainer.innerHTML='<div class="loading">Новостей не найдено 😔</div>'; return;}
+
+        allNews = unique;  // сохраним все новости
+        newsContainer.innerHTML = ''; // очистим контейнер
+        newsIndex = 0;
+        renderNewsBatch();
+      } catch(e){console.error(e); newsContainer.innerHTML='<div class="loading">Не удалось загрузить новости 😔</div>';}
+    }
+
+    // Утилиты
+    function stripTags(html){return html.replace(/<\/?[^>]+(>|$)/g," ");}
+    function truncate(str,n){return str.length>n?str.slice(0,n-1)+'…':str;}
+    function escapeHtml(s){return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+    function escapeHtmlAttr(s){return escapeHtml(s).replace(/"/g,'&quot;');}
+
+    refreshBtn.addEventListener('click',()=>{loadAllNews();});
+
+    // Подгрузка по скроллу
+    window.addEventListener('scroll', ()=>{
+      if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200) {
+        renderNewsBatch();
+      }
+    });
+
+    // Грузим при старте
     loadAllNews();
-  });
-
-  // Грузим при старте
-  loadAllNews();
-
   </script>
 </body>
 </html>
