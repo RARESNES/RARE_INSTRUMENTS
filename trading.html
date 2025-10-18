@@ -7,29 +7,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <a href="https://www.binance.com/ru?ref=SITES" target="_blank">
-      Торговать криптовалютами на BINANCE
-    </a>
-  </header>
-
-  <nav>
-    <ul>
-      <li><a href="index.html">Калькулятор</a></li>
-      <li><a href="crypto-index.html">Индекс Топ 500 криптовалют</a></li>
-      <li><a href="minipc.html">Мини ПК для трейдинга</a></li>
-      <li><a href="converter.html">Конвертер криптовалют</a></li>
-      <li><a href="elon.html">Илон Маск Twitter/X</a></li>
-      <li><a href="qr.html">Генератор QR-кодов для крипто-адресов</a></li>
-      <li><a href="chart.html">График Bitcoin (BTC)</a></li>
-      <li><a href="trading.html">Ключ успешного трейдинга</a></li>
-      <li><a href="app.html">Полезные расширения и программы</a></li>
-    </ul>
-  </nav>
-
+  <div id="header"></div>
+  <div id="sidebar"></div>
+  
   <main>
     <h1>Ключ успешного трейдинга</h1>
-<div style="white-space: pre-line; text-align: left;">
+    <div style="white-space: pre-line; text-align: left;">
 Чтобы быть успешным в трейдинге нужно придерживатся следующих правил:
 
 1-2% от капитала на одну новую открытую позицию. Это первый главный ключ успешной торговли. Всего 50-100 позиций.
@@ -62,5 +45,28 @@
 <h1>Лучшее видео про суть успешного трейдинга</h1>
 
 <iframe width="1920" height="1080" src="https://www.youtube.com/embed/GKckbawOVeU?si=l8C_KIZfkqjq9pOL" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  </main>
 
+  <script>
+    // Подгружаем header и sidebar
+    fetch('header.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('header').innerHTML = data);
+
+    fetch('sidebar.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('sidebar').innerHTML = data);
+  </script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EEZSLT2L6C');
+</script>
+
+</body>
 </html>
