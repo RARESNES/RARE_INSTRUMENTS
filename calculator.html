@@ -1,173 +1,110 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Калькулятор TP/SL</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f7;
-      padding: 20px;
-      max-width: 700px;
-      margin: auto;
-    }
-    h2 {
-      margin-top: 30px;
-      text-align: center;
-    }
-    .calc-box {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-top: 15px;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    input[type="number"] {
-      width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px;
-      width: 100%;
-      font-size: 15px;
-      border: none;
-      border-radius: 8px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .result {
-      margin-top: 10px;
-      background: #f0f0f0;
-      padding: 8px;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    .slider-container {
-      margin-top: 10px;
-    }
-    .slider-value {
-      font-weight: bold;
-    }
-    .position-switch {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 15px;
-    }
-    .position-btn {
-      flex: 1;
-      padding: 10px;
-      margin: 0 5px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-      font-size: 15px;
-      transition: background 0.2s;
-    }
-    .long-btn.active {
-      background: #28a745;
-      color: white;
-    }
-    .short-btn.active {
-      background: #dc3545;
-      color: white;
-    }
-    .long-btn {
-      background: #e6f4ea;
-      color: #28a745;
-    }
-    .short-btn {
-      background: #fbeaea;
-      color: #dc3545;
-    }
-  </style>
-</head>
-<body>
+<main id="mainContent">
 
   <h1>Калькулятор TP/SL</h1>
   <p>Калькулятор для спота и фьючерсов с плечом и выбором Лонг/Шорт.</p>
 
   <!-- СПОТ -->
   <h2>Калькулятор для СПОТА</h2>
-  <div class="calc-box">
+  <div class="calc-row">
     <label>Цена входа</label>
-    <input type="number" id="spotEntry" placeholder="Например: 1.245" step="0.0001">
+    <input type="number" id="spotEntry" placeholder="1.245" step="0.0001">
 
     <label>% Тейк-Профита</label>
-    <input type="number" id="spotTPPercent" placeholder="Например: 3" step="0.01">
-    <button onclick="calcSpotTP()">Рассчитать Тейк-Профит</button>
-    <div class="result" id="spotTPResult"></div>
+    <input type="number" id="spotTPPercent" placeholder="3" step="0.01">
+    <button onclick="calcSpotTP()">TP</button>
 
     <label>% Стоп-Лосса</label>
-    <input type="number" id="spotSLPercent" placeholder="Например: 2" step="0.01">
-    <button onclick="calcSpotSL()">Рассчитать Стоп-Лосс</button>
-    <div class="result" id="spotSLResult"></div>
+    <input type="number" id="spotSLPercent" placeholder="2" step="0.01">
+    <button onclick="calcSpotSL()">SL</button>
   </div>
+
+  <table id="resultsTable">
+    <thead>
+      <tr>
+        <th>Тип</th>
+        <th>Цена</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>TP Спот</td>
+        <td id="spotTPResult">—</td>
+      </tr>
+      <tr>
+        <td>SL Спот</td>
+        <td id="spotSLResult">—</td>
+      </tr>
+    </tbody>
+  </table>
 
   <!-- ФЬЮЧЕРСЫ -->
   <h2>Калькулятор для ФЬЮЧЕРСОВ</h2>
-  <div class="calc-box">
+
+  <div class="calc-row">
     <label>Цена входа</label>
-    <input type="number" id="futuresEntry" placeholder="Например: 1.245" step="0.0001">
+    <input type="number" id="futuresEntry" placeholder="1.245" step="0.0001">
 
-    <!-- ПЕРЕКЛЮЧАТЕЛЬ -->
-    <div class="position-switch">
-      <button id="longBtn" class="position-btn long-btn active" onclick="setPosition('long')">🟢 Лонг</button>
-      <button id="shortBtn" class="position-btn short-btn" onclick="setPosition('short')">🔴 Шорт</button>
+    <div>
+      <button id="longBtn" class="active" onclick="setPosition('long')">🟢 Лонг</button>
+      <button id="shortBtn" onclick="setPosition('short')">🔴 Шорт</button>
     </div>
 
-    <div class="slider-container">
-      <label>Плечо: <span id="leverageValue" class="slider-value">1x</span></label>
-      <input type="range" id="leverageSlider" min="1" max="125" value="1" oninput="updateLeverage()">
-    </div>
+    <label>Плечо</label>
+    <input type="range" id="leverageSlider" min="1" max="125" value="1" oninput="updateLeverage()">
+    <span id="leverageValue">1x</span>
 
     <label>% Тейк-Профита</label>
-    <input type="number" id="futuresTPPercent" placeholder="Например: 1" step="0.01">
-    <button onclick="calcFuturesTP()">Рассчитать Тейк-Профит</button>
-    <div class="result" id="futuresTPResult"></div>
+    <input type="number" id="futuresTPPercent" placeholder="1" step="0.01">
+    <button onclick="calcFuturesTP()">TP</button>
 
     <label>% Стоп-Лосса</label>
-    <input type="number" id="futuresSLPercent" placeholder="Например: 0.5" step="0.01">
-    <button onclick="calcFuturesSL()">Рассчитать Стоп-Лосс</button>
-    <div class="result" id="futuresSLResult"></div>
+    <input type="number" id="futuresSLPercent" placeholder="0.5" step="0.01">
+    <button onclick="calcFuturesSL()">SL</button>
   </div>
+
+  <table id="resultsTable">
+    <thead>
+      <tr>
+        <th>Тип</th>
+        <th>Цена</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>TP Фьючерс</td>
+        <td id="futuresTPResult">—</td>
+      </tr>
+      <tr>
+        <td>SL Фьючерс</td>
+        <td id="futuresSLResult">—</td>
+      </tr>
+    </tbody>
+  </table>
+
+</main>
 
 <script>
   // ---------------- СПОТ ----------------
   function calcSpotTP() {
     const entry = parseFloat(document.getElementById('spotEntry').value);
     const percent = parseFloat(document.getElementById('spotTPPercent').value);
-    if (isNaN(entry) || isNaN(percent)) { 
-      document.getElementById('spotTPResult').textContent = 'Введите цену и процент.'; 
+    if(isNaN(entry) || isNaN(percent)) { 
+      document.getElementById('spotTPResult').textContent = '—';
       return; 
     }
-    const tpPrice = entry * (1 + percent / 100);
-    document.getElementById('spotTPResult').textContent = `Цена тейк-профита: ${tpPrice.toFixed(6)}`;
+    const tpPrice = entry*(1+percent/100);
+    document.getElementById('spotTPResult').textContent = tpPrice.toFixed(6);
   }
+
   function calcSpotSL() {
     const entry = parseFloat(document.getElementById('spotEntry').value);
     const percent = parseFloat(document.getElementById('spotSLPercent').value);
-    if (isNaN(entry) || isNaN(percent)) { 
-      document.getElementById('spotSLResult').textContent = 'Введите цену и процент.'; 
+    if(isNaN(entry) || isNaN(percent)) { 
+      document.getElementById('spotSLResult').textContent = '—';
       return; 
     }
-    const slPrice = entry * (1 - percent / 100);
-    document.getElementById('spotSLResult').textContent = `Цена стоп-лосса: ${slPrice.toFixed(6)}`;
+    const slPrice = entry*(1-percent/100);
+    document.getElementById('spotSLResult').textContent = slPrice.toFixed(6);
   }
 
   // ---------------- ФЬЮЧЕРС ----------------
@@ -177,35 +114,35 @@
     document.getElementById('longBtn').classList.toggle('active', type==='long');
     document.getElementById('shortBtn').classList.toggle('active', type==='short');
   }
+
   function updateLeverage() {
     const value = document.getElementById('leverageSlider').value;
-    document.getElementById('leverageValue').textContent = `${value}x`;
+    document.getElementById('leverageValue').textContent = value+'x';
   }
+
   function calcFuturesTP() {
     const entry = parseFloat(document.getElementById('futuresEntry').value);
     const percent = parseFloat(document.getElementById('futuresTPPercent').value);
     const leverage = parseFloat(document.getElementById('leverageSlider').value);
-    if (isNaN(entry) || isNaN(percent) || isNaN(leverage)) { 
-      document.getElementById('futuresTPResult').textContent='Введите цену и процент.'; 
+    if(isNaN(entry) || isNaN(percent) || isNaN(leverage)) { 
+      document.getElementById('futuresTPResult').textContent='—'; 
       return; 
     }
     const priceChange = percent / leverage;
-    const tpPrice = positionType==='long' ? entry*(1+priceChange/100) : entry*(1-priceChange/100);
-    document.getElementById('futuresTPResult').textContent = `Цена тейк-профита (${positionType}): ${tpPrice.toFixed(6)} (движение цены ≈ ${priceChange.toFixed(4)}%)`;
+    const tpPrice = positionType==='long'? entry*(1+priceChange/100) : entry*(1-priceChange/100);
+    document.getElementById('futuresTPResult').textContent = tpPrice.toFixed(6);
   }
+
   function calcFuturesSL() {
     const entry = parseFloat(document.getElementById('futuresEntry').value);
     const percent = parseFloat(document.getElementById('futuresSLPercent').value);
     const leverage = parseFloat(document.getElementById('leverageSlider').value);
-    if (isNaN(entry) || isNaN(percent) || isNaN(leverage)) { 
-      document.getElementById('futuresSLResult').textContent='Введите цену и процент.'; 
+    if(isNaN(entry) || isNaN(percent) || isNaN(leverage)) { 
+      document.getElementById('futuresSLResult').textContent='—'; 
       return; 
     }
     const priceChange = percent / leverage;
-    const slPrice = positionType==='long' ? entry*(1-priceChange/100) : entry*(1+priceChange/100);
-    document.getElementById('futuresSLResult').textContent = `Цена стоп-лосса (${positionType}): ${slPrice.toFixed(6)} (движение цены ≈ ${priceChange.toFixed(4)}%)`;
+    const slPrice = positionType==='long'? entry*(1-priceChange/100) : entry*(1+priceChange/100);
+    document.getElementById('futuresSLResult').textContent = slPrice.toFixed(6);
   }
 </script>
-
-</body>
-</html>
