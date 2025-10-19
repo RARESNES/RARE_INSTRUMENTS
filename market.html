@@ -2,53 +2,53 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Рынок Binance — Все монеты</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Рынок Binance — Все монеты</title>
+  <link rel="stylesheet" href="style.css">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f8f9fa;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
-      text-align: center;
+    main {
       padding: 20px;
-      margin: 0;
-      background: #fff;
-      border-bottom: 1px solid #ddd;
+      max-width: 1200px;
+      margin: 0 auto;
     }
-    .table-container {
-      max-width: 1000px;
-      margin: 20px auto;
+
+    .market-container {
       background: #fff;
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
     }
+
     thead {
       background: #f1f1f1;
+      cursor: pointer;
     }
+
     th, td {
       padding: 12px;
       text-align: left;
       font-size: 14px;
     }
+
     tbody tr:nth-child(even) {
       background: #f9f9f9;
     }
+
     .green {
       color: #16a34a;
       font-weight: bold;
     }
+
     .red {
       color: #dc2626;
       font-weight: bold;
     }
+
     .trade-btn {
       background: #fcd535;
       color: #000;
@@ -57,75 +57,145 @@
       text-decoration: none;
       font-weight: 600;
     }
+
     .trade-btn:hover {
       background: #e0bb2f;
+    }
+
+    th.sortable:hover {
+      background: #e9e9e9;
+    }
+
+    th.active-sort {
+      background: #e0e0e0;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
+  <div id="header"></div>
+  <div id="sidebar"></div>
 
-<h1>📊 Все монеты Binance (Spot)</h1>
+  <main>
+    <h1>📊 Рынок Binance — Все монеты (Spot)</h1>
+    <div class="market-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Пара</th>
+            <th class="sortable" data-sort="price">Цена ▲▼</th>
+            <th class="sortable" data-sort="change">Изм. 24ч ▲▼</th>
+            <th class="sortable" data-sort="volume">Объём ▲▼</th>
+            <th>Торговать</th>
+          </tr>
+        </thead>
+        <tbody id="market-body">
+          <tr><td colspan="5" style="text-align:center;padding:20px;">Загрузка...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
 
-<div class="table-container">
-  <table>
-    <thead>
-      <tr>
-        <th>Пара</th>
-        <th>Цена</th>
-        <th>Изменение 24ч</th>
-        <th>Торговать</th>
-      </tr>
-    </thead>
-    <tbody id="market-body">
-      <tr><td colspan="4" style="text-align:center;padding:20px;">Загрузка...</td></tr>
-    </tbody>
-  </table>
-</div>
+  <script>
+    // Подгружаем header и sidebar
+    fetch('header.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('header').innerHTML = data);
 
-<script>
-  const API_URL = 'https://api.binance.com/api/v3/ticker/24hr';
-  const REF_ID = 'SITES'; // <-- твой реф ID сюда
+    fetch('sidebar.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('sidebar').innerHTML = data);
 
-  async function loadMarketData() {
-    try {
-      const response = await fetch(API_URL);
-      const data = await response.json();
+    const API_URL = 'https://api.binance.com/api/v3/ticker/24hr';
+    const REF_ID = 'SITES'; // твой реф ID
+    let marketData = [];
+    let currentSort = { key: 'volume', asc: false };
 
-      // фильтруем пары, оканчивающиеся на USDT
-      const usdtPairs = data.filter(item => item.symbol.endsWith('USDT'));
+    async function loadMarketData() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        marketData = data
+          .filter(item => item.symbol.endsWith('USDT'))
+          .map(item => ({
+            symbol: item.symbol,
+            base: item.symbol.replace('USDT', ''),
+            price: parseFloat(item.lastPrice),
+            change: parseFloat(item.priceChangePercent),
+            volume: parseFloat(item.quoteVolume) // объём в USDT
+          }));
+        renderTable();
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
+    function renderTable() {
       const tbody = document.getElementById('market-body');
       tbody.innerHTML = '';
 
-      usdtPairs.forEach(item => {
-        const symbol = item.symbol;             // например BTCUSDT
-        const base = symbol.replace('USDT', ''); // BTC
-        const price = parseFloat(item.lastPrice).toFixed(6);
-        const change = parseFloat(item.priceChangePercent).toFixed(2);
-        const changeClass = change >= 0 ? 'green' : 'red';
+      const sorted = [...marketData].sort((a, b) => {
+        const key = currentSort.key;
+        const dir = currentSort.asc ? 1 : -1;
+        return a[key] > b[key] ? dir : a[key] < b[key] ? -dir : 0;
+      });
 
-        // ссылка на торговлю конкретной парой
-        const tradeUrl = `https://www.binance.com/ru/trade/${base}_USDT?ref=${REF_ID}`;
+      sorted.forEach(item => {
+        const changeClass = item.change >= 0 ? 'green' : 'red';
+        const tradeUrl = `https://www.binance.com/ru/trade/${item.base}_USDT?ref=${REF_ID}`;
 
         const row = `
           <tr>
-            <td>${base}/USDT</td>
-            <td>${price}</td>
-            <td class="${changeClass}">${change}%</td>
+            <td>${item.base}/USDT</td>
+            <td>${item.price.toFixed(6)}</td>
+            <td class="${changeClass}">${item.change.toFixed(2)}%</td>
+            <td>${Number(item.volume).toLocaleString()}</td>
             <td><a class="trade-btn" href="${tradeUrl}" target="_blank">Торговать</a></td>
           </tr>
         `;
         tbody.insertAdjacentHTML('beforeend', row);
       });
 
-    } catch (e) {
-      console.error(e);
+      updateActiveSortHeader();
     }
-  }
 
-  loadMarketData();
-  setInterval(loadMarketData, 30000); // автообновление каждые 30 сек
-</script>
+    function updateActiveSortHeader() {
+      document.querySelectorAll('th.sortable').forEach(th => {
+        th.classList.remove('active-sort');
+        if (th.dataset.sort === currentSort.key) {
+          th.classList.add('active-sort');
+        }
+      });
+    }
 
+    document.querySelectorAll('th.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const sortKey = th.dataset.sort;
+        if (currentSort.key === sortKey) {
+          currentSort.asc = !currentSort.asc;
+        } else {
+          currentSort.key = sortKey;
+          currentSort.asc = false;
+        }
+        renderTable();
+      });
+    });
+
+    loadMarketData();
+    setInterval(loadMarketData, 30000);
+  </script>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-EEZSLT2L6C');
+  </script>
 </body>
 </html>
