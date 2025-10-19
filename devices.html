@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Название страницы</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header"></div>
+  <div id="sidebar"></div>
+  
+  <main>
+    <h1>Криптовалютный трекер</h1>
+    <div style="white-space: pre-line; text-align: left;">
+    <img src="cryptotracker.jpg" alt="CryptoTracker" />
+     Полезное устройство для трейдеров холдеров. Подключается по Wi-Fi к роутеру и показывает курсы и графики выбранных криптовалют. 
+     Просыпаясь можно видеть курсы еще до того как включется компьютер. по сути это  боле продвинутый электронный будильник. 
+     Питается от USB Type-C. <a href="https://aliexpress.ru/wholesale?SearchText=crypto+tracker" target="_blank"> Купить CryptoTracker на Aliexpress
+   </a>
+
+  <h1>Аппаратный криптокошелек SafePal S1</h1>
+    <div style="white-space: pre-line; text-align: left;">
+    <img src="safepals1.jpg" alt="SafePal S1" />
+     Лучший и самый безопасный криптокошелек на рынке. Исключает утечку сид фразы по USB, таккак все подписи транзакций осуществляются с помощью встроенной камеры и QR кодов.
+     Управлять кошелком так же можно через браузерное расширение SafePal, это так же исключат утечку по сравнению с обычными браузерными кошельками, 
+     например если на компьютере установлен скрытый вирус кейлогер, так же утечка может произойти через скриншоты рабочего стола которая делает Windows каждый раз ппосле старта, все это исключено с SafePal S1. <a href="https://aliexpress.ru/wholesale?SearchText=safepal+s1" target="_blank"> Купить SafePal на Aliexpress
+   </a>
+
+  </main>
+
+</div>
+
+  <script>
+    // Подгружаем header и sidebar
+    fetch('header.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('header').innerHTML = data);
+
+    fetch('sidebar.html')
+      .then(res => res.text())
+      .then(data => document.getElementById('sidebar').innerHTML = data);
+  </script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EEZSLT2L6C');
+</script>
+
+</body>
+</html>
