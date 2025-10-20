@@ -3,9 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Рынок Binance — Фьючерсы</title>
+  <title>Рынок Binance — Фьючерсы (USDT-M)</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    body {
+      background: #fafafa;
+      font-family: Arial, sans-serif;
+      color: #111;
+    }
+
     main {
       padding: 20px;
       max-width: 1200px;
@@ -74,6 +80,14 @@
       text-align: center;
       margin-bottom: 20px;
     }
+
+    .coin-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 6px;
+      vertical-align: middle;
+      border-radius: 50%;
+    }
   </style>
 </head>
 <body>
@@ -101,17 +115,25 @@
   </main>
 
   <script>
-    // Подгружаем header и sidebar
+    // Загружаем header и sidebar (игнорируем ошибки при локальном запуске)
     fetch('header.html')
-      .then(res => res.text())
-      .then(data => document.getElementById('header').innerHTML = data);
+      .then(res => {
+        if (!res.ok) throw new Error('Header not found');
+        return res.text();
+      })
+      .then(data => document.getElementById('header').innerHTML = data)
+      .catch(() => console.warn('⚠ Header не загружен (локальный запуск).'));
 
     fetch('sidebar.html')
-      .then(res => res.text())
-      .then(data => document.getElementById('sidebar').innerHTML = data);
+      .then(res => {
+        if (!res.ok) throw new Error('Sidebar not found');
+        return res.text();
+      })
+      .then(data => document.getElementById('sidebar').innerHTML = data)
+      .catch(() => console.warn('⚠ Sidebar не загружен (локальный запуск).'));
 
-    const API_URL = 'https://fapi.binance.com/fapi/v1/ticker/24hr'; // Фьючерсы USDT-M
-    const REF_ID = 'SITES'; // Твой реф ID
+    const API_URL = 'https://api.coingecko.com/api/v3/derivatives';
+    const REF_ID = 'SITES'; // твой реферальный ID
     let marketData = [];
     let currentSort = { key: 'volume', asc: false };
 
@@ -119,18 +141,28 @@
       try {
         const response = await fetch(API_URL);
         const data = await response.json();
+
+        // Отбираем только Binance Futures USDT пары
         marketData = data
-          .filter(item => item.symbol.endsWith('USDT'))
+          .filter(item =>
+            item.market === 'Binance (Futures)' &&
+            item.symbol &&
+            item.symbol.toUpperCase().endsWith('USDT') &&
+            item.base
+          )
           .map(item => ({
-            symbol: item.symbol,
-            base: item.symbol.replace('USDT', ''),
-            price: parseFloat(item.lastPrice),
-            change: parseFloat(item.priceChangePercent),
-            volume: parseFloat(item.quoteVolume) // объем в USDT
+            symbol: item.base ? item.base.toUpperCase() : '—',
+            price: item.last_price ?? 0,
+            change: item.price_percentage_change_24h ?? 0,
+            volume: item.converted_volume?.usd ?? 0,
+            image: item.base ? `https://coinicons-api.vercel.app/api/icon/${item.base.toLowerCase()}` : ''
           }));
+
         renderTable();
       } catch (e) {
-        console.error(e);
+        console.error('Ошибка загрузки данных CoinGecko Futures:', e);
+        const tbody = document.getElementById('market-body');
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;">⚠ Ошибка загрузки данных</td></tr>`;
       }
     }
 
@@ -146,12 +178,11 @@
 
       sorted.forEach(item => {
         const changeClass = item.change >= 0 ? 'green' : 'red';
-        // URL для фьючерсной торговли:
-        const tradeUrl = `https://www.binance.com/ru/futures/${item.base}USDT?ref=${REF_ID}`;
+        const tradeUrl = `https://www.binance.com/ru/futures/${item.symbol}USDT?ref=${REF_ID}`;
 
         const row = `
           <tr>
-            <td>${item.base}/USDT</td>
+            <td><img src="${item.image}" alt="" class="coin-icon">${item.symbol}/USDT</td>
             <td>${item.price.toFixed(6)}</td>
             <td class="${changeClass}">${item.change.toFixed(2)}%</td>
             <td>${Number(item.volume).toLocaleString()}</td>
@@ -190,7 +221,7 @@
     setInterval(loadMarketData, 30000);
   </script>
 
-  <!-- Google tag (gtag.js) -->
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
