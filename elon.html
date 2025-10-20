@@ -3,13 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Илон Макс Twitter/X</title>
+  <title>Илон Маск Twitter/X</title>
   <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div id="header"></div>
-  <div id="sidebar"></div>
- 
   <style>
     html, body {
       margin: 0;
@@ -24,19 +19,38 @@
       background: #fff;
     }
 
+    header.page-title {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+      padding: 15px 10px;
+      background: #f5f5f5;
+      border-bottom: 1px solid #ddd;
+    }
+
     main {
       flex: 1;
       display: flex;
       align-items: stretch;
       justify-content: stretch;
+      flex-direction: column;
     }
 
     iframe {
       width: 100%;
       height: 100%;
       border: none;
+      flex: 1;
     }
   </style>
+</head>
+<body>
+  <div id="header"></div>
+  <div id="sidebar"></div>
+
+  <header class="page-title">
+    Лента Илона Маска в&nbsp;соцсети <strong>Twitter / X</strong>
+  </header>
 
   <main>
     <iframe src="https://nitter.net/elonmusk" loading="lazy" referrerpolicy="no-referrer"></iframe>
@@ -53,15 +67,15 @@
       .then(data => document.getElementById('sidebar').innerHTML = data);
   </script>
 
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
 
-  gtag('config', 'G-KH63Z4DFJ2');
-</script>
+    gtag('config', 'G-KH63Z4DFJ2');
+  </script>
 
 </body>
 </html>
