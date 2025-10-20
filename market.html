@@ -86,7 +86,7 @@
       <table>
         <thead>
           <tr>
-            <th>Пара</th>
+            <th>Монета</th>
             <th class="sortable" data-sort="price">Цена ▲▼</th>
             <th class="sortable" data-sort="change">Изм. 24ч ▲▼</th>
             <th class="sortable" data-sort="volume">Объём ▲▼</th>
@@ -101,7 +101,7 @@
   </main>
 
   <script>
-    // Подгружаем header и sidebar
+    // Загружаем header и sidebar
     fetch('header.html')
       .then(res => res.text())
       .then(data => document.getElementById('header').innerHTML = data);
@@ -110,27 +110,31 @@
       .then(res => res.text())
       .then(data => document.getElementById('sidebar').innerHTML = data);
 
-    const API_URL = 'https://api.binance.com/api/v3/ticker/24hr';
-    const REF_ID = 'SITES'; // твой реф ID
+    const REF_ID = 'SITES'; // твой реф-код Binance
     let marketData = [];
     let currentSort = { key: 'volume', asc: false };
+
+    const API_URL = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=100&page=1&sparkline=false';
 
     async function loadMarketData() {
       try {
         const response = await fetch(API_URL);
         const data = await response.json();
-        marketData = data
-          .filter(item => item.symbol.endsWith('USDT'))
-          .map(item => ({
-            symbol: item.symbol,
-            base: item.symbol.replace('USDT', ''),
-            price: parseFloat(item.lastPrice),
-            change: parseFloat(item.priceChangePercent),
-            volume: parseFloat(item.quoteVolume) // объём в USDT
-          }));
+
+        marketData = data.map(item => ({
+          id: item.id,
+          symbol: item.symbol.toUpperCase(),
+          name: item.name,
+          price: item.current_price,
+          change: item.price_change_percentage_24h,
+          volume: item.total_volume
+        }));
+
         renderTable();
       } catch (e) {
-        console.error(e);
+        console.error('Ошибка загрузки данных CoinGecko:', e);
+        const tbody = document.getElementById('market-body');
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">Ошибка загрузки данных.</td></tr>`;
       }
     }
 
@@ -146,14 +150,14 @@
 
       sorted.forEach(item => {
         const changeClass = item.change >= 0 ? 'green' : 'red';
-        const tradeUrl = `https://www.binance.com/ru/trade/${item.base}_USDT?ref=${REF_ID}`;
+        const tradeUrl = `https://www.binance.com/ru/trade/${item.symbol}_USDT?ref=${REF_ID}`;
 
         const row = `
           <tr>
-            <td>${item.base}/USDT</td>
-            <td>${item.price.toFixed(6)}</td>
-            <td class="${changeClass}">${item.change.toFixed(2)}%</td>
-            <td>${Number(item.volume).toLocaleString()}</td>
+            <td>${item.name} (${item.symbol})</td>
+            <td>$${item.price.toFixed(6)}</td>
+            <td class="${changeClass}">${item.change?.toFixed(2) ?? 0}%</td>
+            <td>$${Number(item.volume).toLocaleString()}</td>
             <td><a class="trade-btn" href="${tradeUrl}" target="_blank">Торговать</a></td>
           </tr>
         `;
@@ -186,7 +190,7 @@
     });
 
     loadMarketData();
-    setInterval(loadMarketData, 30000);
+    setInterval(loadMarketData, 60000);
   </script>
 
   <!-- Google tag (gtag.js) -->
