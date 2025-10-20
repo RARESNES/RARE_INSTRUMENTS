@@ -3,58 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Рынок Binance — Фьючерсы (USDT-M)</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Рынок Binance — Фьючерсы</title>
   <style>
-    body {
-      background: #fafafa;
-      font-family: Arial, sans-serif;
-      color: #111;
-    }
-
     main {
       padding: 20px;
       max-width: 1200px;
       margin: 0 auto;
     }
-
     .market-container {
       background: #fff;
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
     }
-
     thead {
       background: #f1f1f1;
       cursor: pointer;
     }
-
     th, td {
       padding: 12px;
       text-align: left;
       font-size: 14px;
     }
-
     tbody tr:nth-child(even) {
       background: #f9f9f9;
     }
-
-    .green {
-      color: #16a34a;
-      font-weight: bold;
-    }
-
-    .red {
-      color: #dc2626;
-      font-weight: bold;
-    }
-
+    .green { color: #16a34a; font-weight: bold; }
+    .red { color: #dc2626; font-weight: bold; }
     .trade-btn {
       background: #fcd535;
       color: #000;
@@ -63,31 +42,10 @@
       text-decoration: none;
       font-weight: 600;
     }
-
-    .trade-btn:hover {
-      background: #e0bb2f;
-    }
-
-    th.sortable:hover {
-      background: #e9e9e9;
-    }
-
-    th.active-sort {
-      background: #e0e0e0;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .coin-icon {
-      width: 20px;
-      height: 20px;
-      margin-right: 6px;
-      vertical-align: middle;
-      border-radius: 50%;
-    }
+    .trade-btn:hover { background: #e0bb2f; }
+    th.sortable:hover { background: #e9e9e9; }
+    th.active-sort { background: #e0e0e0; }
+    h1 { text-align: center; margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -115,54 +73,41 @@
   </main>
 
   <script>
-    // Загружаем header и sidebar (игнорируем ошибки при локальном запуске)
+    // Загружаем header / sidebar, но игнорируем ошибку
     fetch('header.html')
-      .then(res => {
-        if (!res.ok) throw new Error('Header not found');
-        return res.text();
-      })
-      .then(data => document.getElementById('header').innerHTML = data)
-      .catch(() => console.warn('⚠ Header не загружен (локальный запуск).'));
-
+      .then(r => r.text())
+      .then(t => document.getElementById('header').innerHTML = t)
+      .catch(() => console.warn('⚠ Header не загружен.'));
     fetch('sidebar.html')
-      .then(res => {
-        if (!res.ok) throw new Error('Sidebar not found');
-        return res.text();
-      })
-      .then(data => document.getElementById('sidebar').innerHTML = data)
-      .catch(() => console.warn('⚠ Sidebar не загружен (локальный запуск).'));
+      .then(r => r.text())
+      .then(t => document.getElementById('sidebar').innerHTML = t)
+      .catch(() => console.warn('⚠ Sidebar не загружен.'));
 
-    const API_URL = 'https://api.coingecko.com/api/v3/derivatives';
-    const REF_ID = 'SITES'; // твой реферальный ID
+    const API_URL = 'https://fapi.binance.com/fapi/v1/ticker/24hr';
+    const REF_ID = 'SITES';
     let marketData = [];
     let currentSort = { key: 'volume', asc: false };
 
     async function loadMarketData() {
       try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
+        const res = await fetch(API_URL);
+        const data = await res.json();
 
-        // Отбираем только Binance Futures USDT пары
         marketData = data
-          .filter(item =>
-            item.market === 'Binance (Futures)' &&
-            item.symbol &&
-            item.symbol.toUpperCase().endsWith('USDT') &&
-            item.base
-          )
+          .filter(item => item.symbol.endsWith('USDT'))
           .map(item => ({
-            symbol: item.base ? item.base.toUpperCase() : '—',
-            price: item.last_price ?? 0,
-            change: item.price_percentage_change_24h ?? 0,
-            volume: item.converted_volume?.usd ?? 0,
-            image: item.base ? `https://coinicons-api.vercel.app/api/icon/${item.base.toLowerCase()}` : ''
+            symbol: item.symbol,
+            base: item.symbol.replace('USDT', ''),
+            price: parseFloat(item.lastPrice),
+            change: parseFloat(item.priceChangePercent),
+            volume: parseFloat(item.quoteVolume)
           }));
 
         renderTable();
-      } catch (e) {
-        console.error('Ошибка загрузки данных CoinGecko Futures:', e);
-        const tbody = document.getElementById('market-body');
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;">⚠ Ошибка загрузки данных</td></tr>`;
+      } catch (err) {
+        console.error('Ошибка загрузки данных Binance Futures:', err);
+        document.getElementById('market-body').innerHTML =
+          `<tr><td colspan="5" style="text-align:center;padding:20px;color:red;">Ошибка загрузки данных</td></tr>`;
       }
     }
 
@@ -178,11 +123,10 @@
 
       sorted.forEach(item => {
         const changeClass = item.change >= 0 ? 'green' : 'red';
-        const tradeUrl = `https://www.binance.com/ru/futures/${item.symbol}USDT?ref=${REF_ID}`;
-
+        const tradeUrl = `https://www.binance.com/ru/futures/${item.base}USDT?ref=${REF_ID}`;
         const row = `
           <tr>
-            <td><img src="${item.image}" alt="" class="coin-icon">${item.symbol}/USDT</td>
+            <td>${item.base}/USDT</td>
             <td>${item.price.toFixed(6)}</td>
             <td class="${changeClass}">${item.change.toFixed(2)}%</td>
             <td>${Number(item.volume).toLocaleString()}</td>
@@ -198,36 +142,21 @@
     function updateActiveSortHeader() {
       document.querySelectorAll('th.sortable').forEach(th => {
         th.classList.remove('active-sort');
-        if (th.dataset.sort === currentSort.key) {
-          th.classList.add('active-sort');
-        }
+        if (th.dataset.sort === currentSort.key) th.classList.add('active-sort');
       });
     }
 
     document.querySelectorAll('th.sortable').forEach(th => {
       th.addEventListener('click', () => {
         const sortKey = th.dataset.sort;
-        if (currentSort.key === sortKey) {
-          currentSort.asc = !currentSort.asc;
-        } else {
-          currentSort.key = sortKey;
-          currentSort.asc = false;
-        }
+        if (currentSort.key === sortKey) currentSort.asc = !currentSort.asc;
+        else { currentSort.key = sortKey; currentSort.asc = false; }
         renderTable();
       });
     });
 
     loadMarketData();
     setInterval(loadMarketData, 30000);
-  </script>
-
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-KH63Z4DFJ2');
   </script>
 </body>
 </html>
