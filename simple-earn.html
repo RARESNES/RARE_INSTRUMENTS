@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Binance Simple Earn — все вклады (Flexible & Locked)</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Основной layout похож на "рынок" */
+    main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 12px; }
+    .note { text-align:center; color:#666; margin-bottom:18px; }
+
+    .market-container {
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      margin-bottom: 28px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: #f1f1f1; cursor: pointer; }
+    th, td { padding: 12px; text-align: left; font-size: 14px; vertical-align: middle; }
+    tbody tr:nth-child(even) { background: #f9f9f9; }
+    th.sortable:hover { background: #e9e9e9; }
+    th.active-sort { background: #e0e0e0; }
+
+    .green { color: #16a34a; font-weight: 600; }
+    .red { color: #dc2626; font-weight: 600; }
+
+    /* Жёлтая кнопка как на твоём рынке */
+    .earn-btn {
+      background: #fcd535;
+      color: #000;
+      padding: 8px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 700;
+      display: inline-block;
+    }
+    .earn-btn:hover { background: #e0bb2f; }
+
+    /* Стили для метаданных */
+    .meta { font-size: 13px; color: #666; }
+
+    /* Мобильная адаптация */
+    @media (max-width: 900px) {
+      th, td { font-size: 13px; padding: 10px; }
+      .earn-btn { padding: 6px 10px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="header"></div>
+  <div id="sidebar"></div>
+
+  <main>
+    <h1>💰 Binance Simple Earn — все продукты (Flexible & Locked)</h1>
+    <div class="note">Данные берутся из публичных эндпоинтов Binance в реальном времени. Обновление каждые 60 с. Кнопки ведут на Binance с вашей реф-ссылкой.</div>
+
+    <!-- Гибкие (Flexible) -->
+    <section>
+      <h2 style="margin-bottom:8px;">Гибкие вклады (Flexible)</h2>
+      <div class="market-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Монета</th>
+              <th class="sortable" data-table="flex" data-sort="apy">APY (%) ▲▼</th>
+              <th class="sortable" data-table="flex" data-sort="earnRate">Доход (дневной/текущий)</th>
+              <th>Тип</th>
+              <th>Действие</th>
+            </tr>
+          </thead>
+          <tbody id="flex-body"><tr><td colspan="5" style="text-align:center;padding:20px;">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Фиксированные (Locked) -->
+    <section style="margin-top:24px;">
+      <h2 style="margin-bottom:8px;">Фиксированные вклады (Locked)</h2>
+      <div class="market-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Монета</th>
+              <th class="sortable" data-table="locked" data-sort="apy">APY (%) ▲▼</th>
+              <th>Срок</th>
+              <th>Условия</th>
+              <th>Действие</th>
+            </tr>
+          </thead>
+          <tbody id="locked-body"><tr><td colspan="5" style="text-align:center;padding:20px;">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  // Подгружаем header и sidebar
+  fetch('header.html').then(r=>r.text()).then(t=>document.getElementById('header').innerHTML=t);
+  fetch('sidebar.html').then(r=>r.text()).then(t=>document.getElementById('sidebar').innerHTML=t);
+
+  // Конфиг
+  const REF_ID = 'SITES'; // <-- замени если нужно
+  const FLEX_URL = 'https://www.binance.com/bapi/earn/v1/public/simple-earn/flexible/list';
+  const LOCKED_URL = 'https://www.binance.com/bapi/earn/v1/public/simple-earn/locked/list';
+  const AUTO_REFRESH_MS = 60000; // 60s
+
+  // Хранилища данных
+  let flexProducts = [];
+  let lockedProducts = [];
+
+  // Вспомогательные: безопасное получение первого массива в ответе
+  function findFirstArray(obj) {
+    if (!obj) return null;
+    if (Array.isArray(obj)) return obj;
+    // Search for any array property with objects
+    for (const k of Object.keys(obj)) {
+      if (Array.isArray(obj[k]) && obj[k].length > 0 && typeof obj[k][0] === 'object') return obj[k];
+    }
+    return null;
+  }
+
+  // Нормализуем продукт в единый формат {asset, apy, earnRate, type, term, note, link}
+  function normalizeFlexible(item) {
+    // Попытка найти поля в различных форматах
+    const asset = item?.asset || item?.symbol || item?.coin || item?.assetName || item?.assetCode || item?.token || '';
+    // APY может быть interestRate (например 0.0001) либо annualInterestRate либо apy
+    let apy = null;
+    if (item?.interestRate) apy = parseFloat(item.interestRate) * 100;
+    else if (item?.annualInterestRate) apy = parseFloat(item.annualInterestRate) * 100;
+    else if (item?.apy) apy = parseFloat(item.apy);
+    else if (item?.interest) apy = parseFloat(item.interest) * 100;
+
+    // earnRate/dailyRate
+    let earnRate = item?.dailyInterest || item?.dailyRate || item?.interestDaily || null;
+    // Some responses have formatted object interest for flexible: e.g. interest[0]?.interestRate
+    if (!apy && item?.interest?.length) {
+      const first = item.interest[0];
+      if (first?.interestRate) apy = parseFloat(first.interestRate) * 100;
+    }
+
+    // link to product: we will link to main Simple Earn page (Binance handles product selection)
+    const link = `https://www.binance.com/ru/earn/simple-earn?ref=${encodeURIComponent(REF_ID)}`;
+
+    return {
+      asset: asset || '(unknown)',
+      apy: isFinite(apy) ? apy : null,
+      earnRate: earnRate || null,
+      type: 'Flexible',
+      term: 'До востребования',
+      note: item?.note || '',
+      link
+    };
+  }
+
+  function normalizeLocked(item) {
+    const asset = item?.asset || item?.symbol || item?.coin || item?.assets?.[0] || '';
+    // Locked responses often have 'productInterestRate' or 'interestRate' or 'annualInterestRate'
+    let apy = null;
+    if (item?.productInterestRate) apy = parseFloat(item.productInterestRate) * 100;
+    else if (item?.interestRate) apy = parseFloat(item.interestRate) * 100;
+    else if (item?.annualInterestRate) apy = parseFloat(item.annualInterestRate) * 100;
+    else if (item?.apy) apy = parseFloat(item.apy);
+
+    // term may be lockPeriod (seconds) or cycle (days)
+    let term = '—';
+    if (item?.lockPeriod) {
+      // often milliseconds or seconds
+      let p = parseInt(item.lockPeriod);
+      if (p > 1000000) p = Math.floor(p / 1000); // if ms -> sec
+      // convert seconds to days if divisible
+      if (p % 86400 === 0) term = (p / 86400) + ' дн';
+      else term = p + ' сек';
+    } else if (item?.term || item?.duration) {
+      term = String(item.term || item.duration);
+    } else if (item?.subscriptionCycle) {
+      term = String(item.subscriptionCycle);
+    } else if (item?.day) {
+      term = item.day + ' дн';
+    }
+
+    // link: direct to simple-earn locked page
+    const link = `https://www.binance.com/ru/earn/simple-earn?ref=${encodeURIComponent(REF_ID)}`;
+
+    return {
+      asset: asset || '(unknown)',
+      apy: isFinite(apy) ? apy : null,
+      earnRate: null,
+      type: 'Locked',
+      term,
+      note: item?.note || '',
+      link
+    };
+  }
+
+  // Функция отображения таблицы гибких
+  function renderFlexible() {
+    const tbody = document.getElementById('flex-body');
+    tbody.innerHTML = '';
+    if (!flexProducts || flexProducts.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;">Нет доступных гибких продуктов</td></tr>`;
+      return;
+    }
+    // сортировка — по apy (если null, ставим в конец)
+    const sorted = [...flexProducts].sort((a,b) => {
+      const av = a.apy ?? -Infinity, bv = b.apy ?? -Infinity;
+      return (bv - av); // по убыванию
+    });
+
+    for (const p of sorted) {
+      const apyText = (p.apy !== null) ? p.apy.toFixed(2) : '—';
+      const apyClass = p.apy !== null && p.apy >= 4 ? 'green' : '';
+      const earnRateText = p.earnRate ?? '';
+      const row = `
+        <tr>
+          <td><strong>${escapeHtml(p.asset)}</strong><div class="meta">${escapeHtml(p.note)}</div></td>
+          <td class="${apyClass}">${apyText}</td>
+          <td>${escapeHtml(String(earnRateText))}</td>
+          <td>${escapeHtml(p.type)}</td>
+          <td><a class="earn-btn" href="${p.link}" target="_blank" rel="noopener">Сделать вклад</a></td>
+        </tr>
+      `;
+      tbody.insertAdjacentHTML('beforeend', row);
+    }
+  }
+
+  // Функция отображения таблицы фиксированных
+  function renderLocked() {
+    const tbody = document.getElementById('locked-body');
+    tbody.innerHTML = '';
+    if (!lockedProducts || lockedProducts.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;">Нет доступных фиксированных продуктов</td></tr>`;
+      return;
+    }
+    const sorted = [...lockedProducts].sort((a,b) => {
+      const av = a.apy ?? -Infinity, bv = b.apy ?? -Infinity;
+      return (bv - av);
+    });
+
+    for (const p of sorted) {
+      const apyText = (p.apy !== null) ? p.apy.toFixed(2) : '—';
+      const apyClass = p.apy !== null && p.apy >= 4 ? 'green' : '';
+      const row = `
+        <tr>
+          <td><strong>${escapeHtml(p.asset)}</strong><div class="meta">${escapeHtml(p.note)}</div></td>
+          <td class="${apyClass}">${apyText}</td>
+          <td>${escapeHtml(p.term)}</td>
+          <td>${escapeHtml(p.type)}</td>
+          <td><a class="earn-btn" href="${p.link}" target="_blank" rel="noopener">Сделать вклад</a></td>
+        </tr>
+      `;
+      tbody.insertAdjacentHTML('beforeend', row);
+    }
+  }
+
+  // Основная загрузка: гибкие + фиксированные
+  async function loadAll() {
+    try {
+      // Flexible
+      try {
+        const rFlex = await fetch(FLEX_URL, { headers: { 'Accept': 'application/json' }});
+        const jFlex = await rFlex.json();
+        const arrFlex = findFirstArray(jFlex) || [];
+        // map to normalized
+        flexProducts = arrFlex.map(i => normalizeFlexible(i));
+      } catch (e) {
+        console.warn('Ошибка загрузки flexible', e);
+        flexProducts = [];
+      }
+
+      // Locked
+      try {
+        const rLocked = await fetch(LOCKED_URL, { headers: { 'Accept': 'application/json' }});
+        const jLocked = await rLocked.json();
+        const arrLocked = findFirstArray(jLocked) || [];
+        // arrLocked may contain groups with products inside; flatten if necessary
+        let flat = [];
+        for (const it of arrLocked) {
+          // if entry has productList or productListRows or products
+          if (Array.isArray(it.productList)) flat.push(...it.productList);
+          else if (Array.isArray(it.productListRows)) flat.push(...it.productListRows);
+          else if (Array.isArray(it.products)) flat.push(...it.products);
+          else flat.push(it);
+        }
+        lockedProducts = flat.map(i => normalizeLocked(i));
+      } catch (e) {
+        console.warn('Ошибка загрузки locked', e);
+        lockedProducts = [];
+      }
+
+      renderFlexible();
+      renderLocked();
+    } catch (e) {
+      console.error('Не удалось загрузить данные Simple Earn', e);
+      document.getElementById('flex-body').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;">Не удалось загрузить гибкие продукты</td></tr>`;
+      document.getElementById('locked-body').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;">Не удалось загрузить фиксированные продукты</td></tr>`;
+    }
+  }
+
+  // Утилиты
+  function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  // Привязки: сортировка на заголовках (универсальная, можно добавить)
+  document.addEventListener('click', (e) => {
+    const th = e.target.closest('th.sortable');
+    if (!th) return;
+    const table = th.dataset.table;
+    const sortKey = th.dataset.sort;
+    if (table === 'flex') {
+      // toggle simple sort on apy (we only support apy for flexible)
+      // no per-table asc state kept for simplicity — just re-sort descending/ascending by reassigning arrays
+      // For now do descending toggle via simple flag on element
+      th._asc = !th._asc;
+      flexProducts.sort((a,b) => (th._asc ? (a[sortKey] ?? -Infinity) - (b[sortKey] ?? -Infinity) : (b[sortKey] ?? -Infinity) - (a[sortKey] ?? -Infinity)));
+      renderFlexible();
+    } else if (table === 'locked') {
+      th._asc = !th._asc;
+      lockedProducts.sort((a,b) => (th._asc ? (a[sortKey] ?? -Infinity) - (b[sortKey] ?? -Infinity) : (b[sortKey] ?? -Infinity) - (a[sortKey] ?? -Infinity)));
+      renderLocked();
+    }
+  });
+
+  // Загрузка + автообновление
+  loadAll();
+  setInterval(loadAll, AUTO_REFRESH_MS);
+  </script>
+</body>
+</html>
