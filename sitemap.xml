@@ -53,7 +53,7 @@
    </url>
    <url>
       <loc>https://crypto-instruments.fun/app.html</loc>
-      <lastmod>2025-10-20</lastmod>
+      <lastmod>2025-10-21</lastmod>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
    </url>
@@ -110,5 +110,11 @@
       <lastmod>2025-10-21</lastmod>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
+   </url>
+   <url>
+      <loc>https://crypto-instruments.fun/pine.html</loc>
+      <lastmod>2025-10-21</lastmod>
+      <changefreq>weekly</changefreq>
+      <priority>0.8</priority>
    </url>
 </urlset>
