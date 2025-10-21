@@ -1,71 +1,89 @@
 <script>
-const REF_ID = 'SITES';
-const COINGECKO_API = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&price_change_percentage=24h';
+  // Header & sidebar
+  fetch('header.html')
+    .then(res => res.text())
+    .then(data => document.getElementById('header').innerHTML = data);
 
-// Словарь для удобного сопоставления coin id с тикером Binance
-// CoinGecko возвращает 'bitcoin', 'ethereum', 'binancecoin', а на Binance тикеры BtcUSDT и тд
-const coinToSymbol = {
-  bitcoin: 'BTC',
-  ethereum: 'ETH',
-  binancecoin: 'BNB',
-  ripple: 'XRP',
-  cardano: 'ADA',
-  dogecoin: 'DOGE',
-  polkadot: 'DOT',
-  litecoin: 'LTC',
-  solana: 'SOL',
-  avalanche: 'AVAX'
-  // Добавь другие по необходимости
-};
+  fetch('sidebar.html')
+    .then(res => res.text())
+    .then(data => document.getElementById('sidebar').innerHTML = data);
 
-async function loadData() {
-  try {
-    const res = await fetch(COINGECKO_API);
-    const data = await res.json();
+  const REF_ID = 'SITES';
+  const COINGECKO_API =
+    'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&price_change_percentage=24h';
 
-    const formatted = data
-      .filter(c => coinToSymbol[c.id]) // берем только те, что есть на Binance
-      .map(c => ({
-        base: coinToSymbol[c.id],
-        price: c.current_price,
-        change: c.price_change_percentage_24h
-      }));
+  // Соответствие ID CoinGecko → тикеру Binance
+  const coinToSymbol = {
+    bitcoin: 'BTC',
+    ethereum: 'ETH',
+    binancecoin: 'BNB',
+    ripple: 'XRP',
+    solana: 'SOL',
+    dogecoin: 'DOGE',
+    cardano: 'ADA',
+    avalanche: 'AVAX',
+    toncoin: 'TON',
+    chainlink: 'LINK',
+    polygon: 'MATIC',
+    polkadot: 'DOT',
+    tron: 'TRX',
+    litecoin: 'LTC',
+    near: 'NEAR',
+    internet_computer: 'ICP',
+    uniswap: 'UNI',
+    aptos: 'APT',
+    cosmos: 'ATOM',
+    filecoin: 'FIL'
+  };
 
-    const gainers = [...formatted].sort((a,b) => b.change - a.change).slice(0,10);
-    const losers = [...formatted].sort((a,b) => a.change - b.change).slice(0,10);
+  async function loadData() {
+    try {
+      const res = await fetch(COINGECKO_API);
+      const data = await res.json();
 
-    renderTable('gainers-spot', gainers, 'spot');
-    renderTable('losers-spot', losers, 'spot');
-    renderTable('gainers-futures', gainers, 'futures');
-    renderTable('losers-futures', losers, 'futures');
+      const filtered = data
+        .filter(c => coinToSymbol[c.id])
+        .map(c => ({
+          base: coinToSymbol[c.id],
+          price: c.current_price,
+          change: c.price_change_percentage_24h
+        }));
 
-  } catch(e) {
-    console.error(e);
+      const gainers = [...filtered].sort((a, b) => b.change - a.change).slice(0, 10);
+      const losers = [...filtered].sort((a, b) => a.change - b.change).slice(0, 10);
+
+      renderTable('gainers-spot', gainers, 'spot');
+      renderTable('losers-spot', losers, 'spot');
+      renderTable('gainers-futures', gainers, 'futures');
+      renderTable('losers-futures', losers, 'futures');
+    } catch (e) {
+      console.error('Ошибка загрузки данных CoinGecko:', e);
+    }
   }
-}
 
-function renderTable(id, arr, type) {
-  const tbody = document.getElementById(id);
-  tbody.innerHTML = '';
+  function renderTable(id, arr, type) {
+    const tbody = document.getElementById(id);
+    tbody.innerHTML = '';
 
-  arr.forEach(item => {
-    const cls = item.change >= 0 ? 'green' : 'red';
-    const url = type === 'spot'
-      ? `https://www.binance.com/ru/trade/${item.base}_USDT?ref=${REF_ID}`
-      : `https://www.binance.com/ru/futures/${item.base}USDT?ref=${REF_ID}`;
-    const row = `
-      <tr>
-        <td>${item.base}/USDT</td>
-        <td>${item.price.toFixed(6)}</td>
-        <td class="${cls}">${item.change.toFixed(2)}%</td>
-        <td><a class="trade-btn" href="${url}" target="_blank">Торговать</a></td>
-      </tr>
-    `;
-    tbody.insertAdjacentHTML('beforeend', row);
-  });
-}
+    arr.forEach(item => {
+      const cls = item.change >= 0 ? 'green' : 'red';
+      const url =
+        type === 'spot'
+          ? `https://www.binance.com/ru/trade/${item.base}_USDT?ref=${REF_ID}`
+          : `https://www.binance.com/ru/futures/${item.base}USDT?ref=${REF_ID}`;
 
-// обновление каждые 30 секунд
-loadData();
-setInterval(loadData, 30000);
+      const row = `
+        <tr>
+          <td>${item.base}/USDT</td>
+          <td>${item.price.toFixed(6)}</td>
+          <td class="${cls}">${item.change.toFixed(2)}%</td>
+          <td><a class="trade-btn" href="${url}" target="_blank">Торговать</a></td>
+        </tr>
+      `;
+      tbody.insertAdjacentHTML('beforeend', row);
+    });
+  }
+
+  loadData();
+  setInterval(loadData, 30000);
 </script>
