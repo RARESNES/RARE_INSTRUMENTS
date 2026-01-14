@@ -1,96 +1,79 @@
-/<!DOCTYPE html>
-<html lang="ru">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Калькулятор сложного процента</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Start Your Crypto Journey</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn how to start crypto trading with a trusted global exchange. Beginner friendly.">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #e0e0e0;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #f0b90b;
+            color: #000;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .footer {
+            margin-top: 60px;
+            font-size: 14px;
+            color: #b0b0b0;
+        }
+    </style>
 </head>
 <body>
-  <div id="header"></div>
-  <div id="sidebar"></div>
-  
-  <main>
-    <h1>Калькулятор сложного процента</h1>
 
-    <div class="calc-row">
-      <label>Начальная сумма ($):</label>
-      <input type="number" id="principal" placeholder="1000">
+    <div class="container">
+        <h1>Start Crypto Trading Today</h1>
+        <p>
+            Discover one of the world’s most popular crypto platforms.  
+            Perfect for beginners and experienced traders.
+        </p>
 
-      <label>Процент за сделку (%):</label>
-      <input type="number" id="rate" placeholder="1">
+        <a class="button" href="https://accounts.binance.com/register?ref=SITES" target="_blank">
+            Create Free Account
+        </a>
 
-      <label>Количество сделок:</label>
-      <input type="number" id="trades" placeholder="10">
-
-      <button onclick="calculate()">Рассчитать</button>
+        <div class="footer">
+            <p>Crypto involves risk. Learn before investing.</p>
+        </div>
     </div>
-
-    <table id="resultsTable">
-      <thead>
-        <tr>
-          <th>Сделка</th>
-          <th>Прибыль</th>
-        </tr>
-      </thead>
-      <tbody id="resultsBody"></tbody>
-    </table>
-
-<div style="text-align:center; margin:32px 0;">
-  <a href="https://www.binance.com/ru?ref=SITES" target="_blank" rel="noopener noreferrer">
-    <img src="binance.jpg" alt="Binance" width="1200" height="675" style="border:0; display:inline-block;">
-  </a>
-</div>
-
-
-  </main>
-
-  <script>
-    function calculate() {
-      const principal = parseFloat(document.getElementById('principal').value);
-      const rate = parseFloat(document.getElementById('rate').value) / 100;
-      const trades = parseInt(document.getElementById('trades').value);
-
-      if (isNaN(principal) || isNaN(rate) || isNaN(trades)) {
-        alert('Введите корректные значения');
-        return;
-      }
-
-      let amount = principal;
-      const resultsBody = document.getElementById('resultsBody');
-      resultsBody.innerHTML = '';
-
-      for (let i = 1; i <= trades; i++) {
-        amount += amount * rate;
-        const formattedAmount = Math.floor(amount).toLocaleString('ru-RU'); // округляем до целых и форматируем
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${i}</td><td>$${formattedAmount}</td>`;
-        resultsBody.appendChild(row);
-      }
-    }
-  </script>
-  </main>
-
-  <script>
-    // Подгружаем header и sidebar
-    fetch('header.html')
-      .then(res => res.text())
-      .then(data => document.getElementById('header').innerHTML = data);
-
-    fetch('sidebar.html')
-      .then(res => res.text())
-      .then(data => document.getElementById('sidebar').innerHTML = data);
-  </script>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-EEZSLT2L6C"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-KH63Z4DFJ2');
-</script>
 
 </body>
 </html>
