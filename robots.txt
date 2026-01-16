@@ -1,25 +1,6 @@
-# Разрешаем всем поисковикам сканировать сайт
+# robots.txt for Crypto Buy Signals
+
 User-agent: *
-# Не индексировать служебные и временные папки
-Disallow: /cgi-bin/
-Disallow: /tmp/
-Disallow: /private/
-Disallow: /backup/
-Disallow: /old/
-# Не индексировать URL с параметрами (от дубликатов)
-Disallow: /*?*
-# Не индексировать страницы с низкой ценностью для SEO
-Disallow: /login/
-Disallow: /register/
-Disallow: /cart/
-Disallow: /checkout/
+Disallow:
 
-# Sitemap для быстрого индексирования
 Sitemap: https://crypto-instruments.fun/sitemap.xml
-
-# Правила для конкретных поисковых систем (по желанию)
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
