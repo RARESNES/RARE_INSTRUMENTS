@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Buy Signals</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #1a1a1a; color: #f0f0f0; margin:0; padding:20px; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #444; padding: 10px; text-align: center; }
+    th { background: #333; }
+    td { background: #222; }
+    .alert { color: #ff4d4d; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>Crypto Buy Signals</h1>
+
+<label>
+  <input type="checkbox" id="notifyToggle"> Notify on new signals
+</label>
+
+<table id="signalsTable">
+  <thead>
+    <tr>
+      <th>Coin</th>
+      <th>Current Price (USDT)</th>
+      <th>RSI (5m)</th>
+      <th>Take Profit (+11%)</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+<audio id="alertSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
+<script>
+const notifyToggle = document.getElementById('notifyToggle');
+const tableBody = document.querySelector('#signalsTable tbody');
+const alertSound = document.getElementById('alertSound');
+
+let knownSignals = {};
+
+async function fetchSymbols() {
+    const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
+    const data = await res.json();
+    return data.symbols
+        .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
+        .map(s => s.symbol);
+}
+
+// Простая функция для RSI (сокращённо для демонстрации)
+function calculateRSI(closes, period = 14) {
+    if (closes.length < period) return null;
+    let gains = 0, losses = 0;
+    for (let i = 1; i < period; i++) {
+        let diff = closes[i] - closes[i-1];
+        if (diff >= 0) gains += diff;
+        else losses -= diff;
+    }
+    let rs = gains / (losses || 1);
+    return 100 - (100 / (1 + rs));
+}
+
+async function fetchRSI(symbol) {
+    const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=5m&limit=15`);
+    const data = await res.json();
+    const closes = data.map(c => parseFloat(c[4])); // close price
+    return calculateRSI(closes);
+}
+
+async function fetchPrice(symbol) {
+    const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
+    const data = await res.json();
+    return parseFloat(data.price);
+}
+
+async function updateSignals() {
+    const symbols = await fetchSymbols();
+    const newSignals = [];
+
+    for (let symbol of symbols) {
+        const rsi = await fetchRSI(symbol);
+        if (rsi !== null && rsi < 5) { // RSI threshold
+            const price = await fetchPrice(symbol);
+            const takeProfit = (price * 1.11).toFixed(4);
+            newSignals.push({symbol, price, rsi: rsi.toFixed(2), takeProfit});
+        }
+    }
+
+    renderTable(newSignals);
+
+    // Notifications
+    if (notifyToggle.checked) {
+        for (let s of newSignals) {
+            if (!knownSignals[s.symbol]) {
+                alertSound.play();
+            }
+            knownSignals[s.symbol] = true;
+        }
+    }
+}
+
+function renderTable(signals) {
+    tableBody.innerHTML = '';
+    if (signals.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="alert">No coins meet the RSI condition now.</td></tr>';
+        return;
+    }
+    for (let s of signals) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${s.symbol}</td><td>${s.price}</td><td>${s.rsi}</td><td>${s.takeProfit}</td>`;
+        tableBody.appendChild(row);
+    }
+}
+
+// Auto refresh every 30 seconds
+updateSignals();
+setInterval(updateSignals, 30000);
+</script>
+
+</body>
+</html>
