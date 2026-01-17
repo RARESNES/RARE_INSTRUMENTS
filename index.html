@@ -12,7 +12,7 @@
 <style>
 body { font-family: Arial, sans-serif; background: #1a1a1a; color: #f0f0f0; margin:0; padding:0; }
 header { background: #ff9900; color: #000; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; }
-header a { color: #000; text-decoration: none; }
+header a { color: #000; text-decoration: none; display:block; }
 .info { background: #222; padding: 10px; text-align: center; font-size: 14px; color: #ccc; }
 table { width: 100%; border-collapse: collapse; margin-top: 20px; }
 th, td { border: 1px solid #444; padding: 10px; text-align: center; }
@@ -23,9 +23,11 @@ td { background: #222; }
 </head>
 <body>
 
+<!-- Banner -->
 <header>
-    Trade Cryptocurrency on Binance! 
-    <a href="https://www.binance.com/en?ref=OTHER" target="_blank">Join Here</a>
+  <a href="https://www.binance.com/en?ref=OTHER" target="_blank">
+    Trade Cryptocurrency on Binance! Join Here
+  </a>
 </header>
 
 <div class="info">
@@ -36,6 +38,7 @@ td { background: #222; }
   <input type="checkbox" id="notifyToggle"> Notify on new signals
 </label>
 
+<!-- Signals Table -->
 <table id="signalsTable">
   <thead>
     <tr>
@@ -58,9 +61,9 @@ const alertSound = document.getElementById('alertSound');
 let knownSignals = {};
 const excludeStables = ['USDC','BUSD','DAI','TUSD','USDP','FDUSD'];
 
-// ===== НАСТРОЙКИ RSI =====
-const RSI_MIN = 1;       // отсечь шум 0.001–1
-const RSI_MAX = 3.62;    // сигналы только ниже 3.62
+// ===== RSI FILTER SETTINGS =====
+const RSI_MIN = 1;      // отсечь шум 0.001–1
+const RSI_MAX = 3.62;   // сигналы только ниже 3.62
 
 async function fetchSymbols() {
     const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
@@ -76,9 +79,7 @@ async function fetchSymbols() {
 
 function calculateRSI(closes, period = 14) {
     if (closes.length < period) return null;
-
-    let gains = 0;
-    let losses = 0;
+    let gains = 0, losses = 0;
 
     for (let i = 1; i < period; i++) {
         const diff = closes[i] - closes[i - 1];
@@ -91,18 +92,14 @@ function calculateRSI(closes, period = 14) {
 }
 
 async function fetchRSI(symbol) {
-    const res = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=5m&limit=15`
-    );
+    const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=5m&limit=15`);
     const data = await res.json();
     const closes = data.map(c => parseFloat(c[4]));
     return calculateRSI(closes);
 }
 
 async function fetchPrice(symbol) {
-    const res = await fetch(
-        `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`
-    );
+    const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
     const data = await res.json();
     return parseFloat(data.price);
 }
@@ -114,12 +111,7 @@ async function updateSignals() {
     for (const symbol of symbols) {
         const rsi = await fetchRSI(symbol);
 
-        // ФИЛЬТР ШУМА И ДИАПАЗОН СИГНАЛОВ
-        if (
-            rsi !== null &&
-            rsi >= RSI_MIN &&
-            rsi < RSI_MAX
-        ) {
+        if (rsi !== null && rsi >= RSI_MIN && rsi < RSI_MAX) {
             const price = await fetchPrice(symbol);
             const takeProfit = (price * 1.11).toFixed(4);
 
@@ -136,9 +128,7 @@ async function updateSignals() {
 
     if (notifyToggle.checked) {
         for (const s of newSignals) {
-            if (!knownSignals[s.symbol]) {
-                alertSound.play();
-            }
+            if (!knownSignals[s.symbol]) alertSound.play();
             knownSignals[s.symbol] = true;
         }
     }
@@ -149,17 +139,17 @@ function renderTable(signals) {
 
     if (signals.length === 0) {
         tableBody.innerHTML =
-            '<tr><td colspan="4" class="alert">No coins meet the RSI condition now. Waiting for new signals...</td></tr>';
+          '<tr><td colspan="4" class="alert">No coins meet the RSI condition now. Waiting for new signals...</td></tr>';
         return;
     }
 
     for (const s of signals) {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${s.symbol}</td>
-            <td>${s.price}</td>
-            <td>${s.rsi}</td>
-            <td>${s.takeProfit}</td>
+          <td>${s.symbol}</td>
+          <td>${s.price}</td>
+          <td>${s.rsi}</td>
+          <td>${s.takeProfit}</td>
         `;
         tableBody.appendChild(row);
     }
@@ -169,6 +159,39 @@ updateSignals();
 setInterval(updateSignals, 30000);
 setInterval(() => location.reload(), 300000);
 </script>
+
+<!-- David Paul Strategy Section with Photo -->
+<div style="background:#111; color:#f0f0f0; padding:20px; margin-top:40px; border-top: 2px solid #ff9900; border-radius:8px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:20px;">
+  <div style="flex: 0 0 200px; text-align:center;">
+    <img src="David_Paul.jpg" alt="David Paul" style="width:180px; border-radius:8px; border:2px solid #ff9900;">
+    <div style="margin-top:10px; font-size:14px; color:#ccc;">David Paul</div>
+  </div>
+  <div style="flex:1; min-width:250px; max-width:600px;">
+    <h2 style="color:#ff9900; text-align:left;">David Paul Trading Strategy</h2>
+    <ul style="line-height:1.8; padding-left:20px;">
+      <li>💰 Use <strong>1% of your capital</strong> per open position.</li>
+      <li>🎯 Take Profit: <strong>4-20%</strong> depending on your risk appetite.</li>
+      <li>📈 <strong>Spot trading only</strong> — never use futures.</li>
+      <li>🚫 No stop losses — manage trades carefully.</li>
+      <li>🦷 Work like a dentist who carefully treats each tooth and doesn’t think about money. The money will take care of itself. — <em>Professor, mathematician & trader David Paul</em></li>
+    </ul>
+  </div>
+</div>
+
+<!-- David Paul Lecture Video -->
+<div style="background:#111; color:#f0f0f0; padding:30px; margin-top:40px; border-top:2px solid #ff9900; text-align:center; border-radius:8px;">
+  <h2 style="color:#ff9900; margin-bottom:15px;">David Paul Trading Lecture</h2>
+  <div style="max-width:800px; margin:0 auto;">
+    <iframe width="100%" height="450" src="https://www.youtube.com/embed/xbbmqRC_M0o"
+      title="David Paul Lecture" frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen></iframe>
+    <p style="margin-top:15px; font-size:16px; color:#ccc;">
+      Watch the full lecture on trading psychology and disciplined execution by David Paul —
+      focusing on method, risk management, and self-control for long-term success.
+    </p>
+  </div>
+</div>
 
 </body>
 </html>
