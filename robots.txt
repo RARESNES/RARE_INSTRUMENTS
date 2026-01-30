@@ -1,6 +1,0 @@
-# robots.txt for Crypto Buy Signals
-
-User-agent: *
-Disallow:
-
-Sitemap: https://crypto-instruments.fun/sitemap.xml

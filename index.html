@@ -1,197 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Buy Signals | Binance USDT Trading</title>
-<meta name="description" content="Real-time cryptocurrency buy signals for USDT pairs on Binance. Get alerts when RSI (5 min) drops below threshold. Trade smart and profit safely.">
-<meta name="keywords" content="crypto signals, Binance, USDT, RSI signals, cryptocurrency trading, buy alerts, crypto alerts">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://yourdomain.com/">
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Binance Bonus & Referral Codes 2025–2026</title>
+  <meta name="description" content="Best Binance referral & bonus codes 2025–2026. Trading fee discounts, futures bonuses. Official signup links." />
+  <link rel="canonical" href="https://crypto-instruments.com/" />
 
-<style>
-body { font-family: Arial, sans-serif; background: #1a1a1a; color: #f0f0f0; margin:0; padding:0; }
-header { background: #ff9900; color: #000; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; }
-header a { color: #000; text-decoration: none; display:block; }
-.info { background: #222; padding: 10px; text-align: center; font-size: 14px; color: #ccc; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-th, td { border: 1px solid #444; padding: 10px; text-align: center; }
-th { background: #333; }
-td { background: #222; }
-.alert { color: #ff4d4d; font-weight: bold; }
-</style>
+  <script>
+    (function () {
+      const supported = ['en','de','fr','es','ru','uk','pl','fi','sv','da','zh','ja','kk','lv','lt'];
+      const lang = (navigator.language || navigator.userLanguage || 'en').slice(0,2);
+      if (supported.includes(lang)) {
+        window.location.replace('/lang/' + lang + '.html');
+      } else {
+        window.location.replace('/lang/en.html');
+      }
+    })();
+  </script>
 </head>
 <body>
-
-<!-- Banner -->
-<header>
-  <a href="https://www.binance.com/en?ref=OTHER" target="_blank">
-    Trade Cryptocurrency on Binance! Join Here
-  </a>
-</header>
-
-<div class="info">
-    Keep this page open to receive real-time crypto buy signals.
-</div>
-
-<label style="display:block; text-align:center; margin-top:10px;">
-  <input type="checkbox" id="notifyToggle"> Notify on new signals
-</label>
-
-<!-- Signals Table -->
-<table id="signalsTable">
-  <thead>
-    <tr>
-      <th>Coin</th>
-      <th>Current Price (USDT)</th>
-      <th>RSI (5m)</th>
-      <th>Take Profit (+11%)</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<audio id="alertSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
-
-<script>
-const notifyToggle = document.getElementById('notifyToggle');
-const tableBody = document.querySelector('#signalsTable tbody');
-const alertSound = document.getElementById('alertSound');
-
-let knownSignals = {};
-const excludeStables = ['USDC','BUSD','DAI','TUSD','USDP','FDUSD'];
-
-// ===== RSI FILTER SETTINGS =====
-const RSI_MIN = 1;      // отсечь шум 0.001–1
-const RSI_MAX = 3.62;   // сигналы только ниже 3.62
-
-async function fetchSymbols() {
-    const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
-    const data = await res.json();
-    return data.symbols
-        .filter(s =>
-            s.quoteAsset === 'USDT' &&
-            s.status === 'TRADING' &&
-            !excludeStables.includes(s.baseAsset)
-        )
-        .map(s => s.symbol);
-}
-
-function calculateRSI(closes, period = 14) {
-    if (closes.length < period) return null;
-    let gains = 0, losses = 0;
-
-    for (let i = 1; i < period; i++) {
-        const diff = closes[i] - closes[i - 1];
-        if (diff >= 0) gains += diff;
-        else losses -= diff;
-    }
-
-    const rs = gains / (losses || 1);
-    return 100 - (100 / (1 + rs));
-}
-
-async function fetchRSI(symbol) {
-    const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=5m&limit=15`);
-    const data = await res.json();
-    const closes = data.map(c => parseFloat(c[4]));
-    return calculateRSI(closes);
-}
-
-async function fetchPrice(symbol) {
-    const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
-    const data = await res.json();
-    return parseFloat(data.price);
-}
-
-async function updateSignals() {
-    const symbols = await fetchSymbols();
-    const newSignals = [];
-
-    for (const symbol of symbols) {
-        const rsi = await fetchRSI(symbol);
-
-        if (rsi !== null && rsi >= RSI_MIN && rsi < RSI_MAX) {
-            const price = await fetchPrice(symbol);
-            const takeProfit = (price * 1.11).toFixed(4);
-
-            newSignals.push({
-                symbol,
-                price: price.toFixed(6),
-                rsi: rsi.toFixed(2),
-                takeProfit
-            });
-        }
-    }
-
-    renderTable(newSignals);
-
-    if (notifyToggle.checked) {
-        for (const s of newSignals) {
-            if (!knownSignals[s.symbol]) alertSound.play();
-            knownSignals[s.symbol] = true;
-        }
-    }
-}
-
-function renderTable(signals) {
-    tableBody.innerHTML = '';
-
-    if (signals.length === 0) {
-        tableBody.innerHTML =
-          '<tr><td colspan="4" class="alert">No coins meet the RSI condition now. Waiting for new signals...</td></tr>';
-        return;
-    }
-
-    for (const s of signals) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${s.symbol}</td>
-          <td>${s.price}</td>
-          <td>${s.rsi}</td>
-          <td>${s.takeProfit}</td>
-        `;
-        tableBody.appendChild(row);
-    }
-}
-
-updateSignals();
-setInterval(updateSignals, 30000);
-setInterval(() => location.reload(), 300000);
-</script>
-
-<!-- David Paul Strategy Section with Photo -->
-<div style="background:#111; color:#f0f0f0; padding:20px; margin-top:40px; border-top: 2px solid #ff9900; border-radius:8px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:20px;">
-  <div style="flex: 0 0 200px; text-align:center;">
-    <img src="David_Paul.jpg" alt="David Paul" style="width:180px; border-radius:8px; border:2px solid #ff9900;">
-    <div style="margin-top:10px; font-size:14px; color:#ccc;">David Paul</div>
-  </div>
-  <div style="flex:1; min-width:250px; max-width:600px;">
-    <h2 style="color:#ff9900; text-align:left;">David Paul Trading Strategy</h2>
-    <ul style="line-height:1.8; padding-left:20px;">
-      <li>💰 Use <strong>1% of your capital</strong> per open position.</li>
-      <li>🎯 Take Profit: <strong>4-20%</strong> depending on your risk appetite.</li>
-      <li>📈 <strong>Spot trading only</strong> — never use futures.</li>
-      <li>🚫 No stop losses — manage trades carefully.</li>
-      <li>🦷 Work like a dentist who carefully treats each tooth and doesn’t think about money. The money will take care of itself. — <em>Professor, mathematician & trader David Paul</em></li>
-    </ul>
-  </div>
-</div>
-
-<!-- David Paul Lecture Video -->
-<div style="background:#111; color:#f0f0f0; padding:30px; margin-top:40px; border-top:2px solid #ff9900; text-align:center; border-radius:8px;">
-  <h2 style="color:#ff9900; margin-bottom:15px;">David Paul Trading Lecture</h2>
-  <div style="max-width:800px; margin:0 auto;">
-    <iframe width="100%" height="450" src="https://www.youtube.com/embed/xbbmqRC_M0o"
-      title="David Paul Lecture" frameborder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      allowfullscreen></iframe>
-    <p style="margin-top:15px; font-size:16px; color:#ccc;">
-      Watch the full lecture on trading psychology and disciplined execution by David Paul —
-      focusing on method, risk management, and self-control for long-term success.
-    </p>
-  </div>
-</div>
-
+  <noscript>
+    <p>Please enable JavaScript to view this site. <a href="/lang/en.html">Continue in English</a>.</p>
+  </noscript>
 </body>
 </html>
