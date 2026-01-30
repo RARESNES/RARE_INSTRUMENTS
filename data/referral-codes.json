@@ -1,0 +1,15 @@
+fetch('/data/referral-codes.json')
+  .then(res => res.json())
+  .then(data => {
+    const tbody = document.querySelector('#codes-table tbody');
+    data.forEach(item => {
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td><strong>${item.code}</strong></td>
+        <td style="color:green">${item.bonus}</td>
+        <td><a class="btn" href="${item.link}" target="_blank">Register</a></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
